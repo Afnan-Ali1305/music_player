@@ -57,10 +57,9 @@ import 'package:music_player/music_tabs/albums_tab.dart';
 import 'package:music_player/music_tabs/artisits_tab.dart';
 import 'package:music_player/music_tabs/folders_tab.dart';
 import 'package:music_player/music_tabs/songs_tab.dart';
-import 'package:music_player/permissions/audio_permission.dart';
+import 'package:music_player/providers/songs_provider.dart';
 import 'package:music_player/router/app_router.gr.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 @RoutePage()
 class HomeScreen extends ConsumerStatefulWidget {
@@ -73,16 +72,23 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List songs = [];
-  bool hasPermission = false;
+
+  // ✅ Properly typed lists
+  // List<Song> songs = [];
+  // List<Song> recentSongs = [];
+  // bool hasPermission = false;
+  // bool isLoading = true;
+
+  // final OnAudioQuery _audioQuery = OnAudioQuery();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      initApp();
-    });
     _tabController = TabController(length: 4, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // initApp();
+      ref.read(songsProvider.notifier).fetchAllSongs();
+    });
   }
 
   @override
@@ -91,23 +97,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Future<void> initApp() async {
-    hasPermission = await AudioPermission.request();
-    final OnAudioQuery audioQuery = OnAudioQuery();
+  // ✅ Properly load all songs with metadata
+  // Future<void> initApp() async {
+  //   hasPermission = await AudioPermission.request();
 
-    Future<List<SongModel>> loadSongs() async {
-      return await audioQuery.querySongs();
-    }
+  //   if (hasPermission) {
+  //     final loadedSongs = await _audioQuery.querySongs(
+  //       sortType: SongSortType.DATE_ADDED,
+  //       orderType: OrderType.DESC_OR_GREATER,
+  //       uriType: UriType.EXTERNAL,
+  //       ignoreCase: true,
+  //     );
 
-    if (hasPermission) {
-      songs = await loadSongs(); // on_audio_query use karo
-    }
-  }
+  //     setState(() {
+  //       // ✅ Transform the list to store only specific data
+  //       songs = loadedSongs
+  //           .map(
+  //             (s) => Song(
+  //               songID: s.id,
+  //               songName: s.title,
+  //               songArtist: s.artist ?? "Unknown Artist",
+  //               songPath: s.uri!,
+  //             ),
+  //           )
+  //           .toList();
+
+  //       recentSongs = songs.take(10).toList();
+  //       isLoading = false;
+  //     });
+  //   } else {
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
+    final songState = ref.watch(songsProvider);
     final textTheme = context.textTheme;
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -133,172 +159,224 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Recently Played Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Recently Played",
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    TextButton(onPressed: () {}, child: const Text("See all")),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 180,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 8, // Replace with actual recent songs count
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: SizedBox(
-                          width: 140,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 140,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: Colors.grey[800],
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/placeholder_album.jpg',
-                                    ), // Use real album art later
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.music_note,
-                                    size: 50,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Song Title ${index + 1}",
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                "Artist Name",
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+      body: songState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : !songState.hasPermission
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text("Storage permission required"),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(songsProvider.notifier).fetchAllSongs();
                     },
+                    child: const Text("Grant Permission"),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                // ✅ Recently Played Section with real song data
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Recently Added",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text("See all"),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 180,
+                        child: songState.recentSongs.isEmpty
+                            ? const Center(child: Text("No songs found"))
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: songState.recentSongs.length,
+                                itemBuilder: (context, index) {
+                                  final song = songState.recentSongs[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: SizedBox(
+                                      width: 140,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // ✅ Real album artwork
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: QueryArtworkWidget(
+                                              id: song.songID,
+                                              type: ArtworkType.AUDIO,
+                                              artworkWidth: 140,
+                                              artworkHeight: 140,
+                                              artworkFit: BoxFit.cover,
+                                              nullArtworkWidget: Container(
+                                                width: 140,
+                                                height: 140,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey[800],
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.music_note,
+                                                  size: 50,
+                                                  color: Colors.white70,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // ✅ Real song title
+                                          Text(
+                                            song.songName,
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          // ✅ Real artist name
+                                          Text(
+                                            song.songArtist,
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(color: Colors.grey),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Library Tabs
+                TabBar(
+                  controller: _tabController,
+                  labelStyle: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: textTheme.titleSmall,
+                  tabs: const [
+                    Tab(text: "Songs"),
+                    Tab(text: "Albums"),
+                    Tab(text: "Artists"),
+                    Tab(text: "Folders"),
+                  ],
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                ),
+
+                // Tab Content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      SongsTab(),
+                      AlbumsTab(),
+                      ArtisitsTab(),
+                      FoldersTab(),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
 
-          // Library Tabs
-          TabBar(
-            controller: _tabController,
-            labelStyle: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: textTheme.titleSmall,
-            tabs: const [
-              Tab(text: "Songs"),
-              Tab(text: "Albums"),
-              Tab(text: "Artists"),
-              Tab(text: "Folders"),
-            ],
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-          ),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // All Songs Tab
-                SongsTab(allSongs: songs),
-
-                // Albums Tab (Placeholder)
-                AlbumsTab(),
-                ArtisitsTab(),
-                FoldersTab(),
-              ],
-            ),
-          ),
-        ],
-      ),
-
-      // Mini Player at Bottom (Always visible when something is playing)
-      bottomNavigationBar: Container(
-        height: 72,
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          border: Border(
-            top: BorderSide(color: Colors.grey.shade800, width: 0.5),
-          ),
-        ),
-        child: ListTile(
-          dense: true,
-          leading: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.grey[700],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.album, color: Colors.white70),
-          ),
-          title: const Text(
-            "Now Playing - Song Title",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: const Text(
-            "Artist Name",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.skip_previous),
-                onPressed: () {},
+      // Mini Player at Bottom
+      bottomNavigationBar: songState.currentSong != null
+          ? Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade800, width: 0.5),
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.play_arrow, size: 32),
-                onPressed: () {},
+              child: ListTile(
+                dense: true,
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[700],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.album, color: Colors.white70),
+                ),
+                title: Text(
+                  songState.currentSong?.songName ?? "",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  songState.currentSong?.songArtist ?? "",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.skip_previous),
+                      onPressed: () {
+                        ref.read(songsProvider.notifier).previousSong();
+                      },
+                    ),
+                    IconButton(
+                      icon: songState.isPlaying
+                          ? Icon(Icons.pause)
+                          : Icon(Icons.play_arrow),
+                      onPressed: () {
+                        if (songState.currentSong == null) return;
+
+                        if (songState.isPlaying) {
+                          ref.read(songsProvider.notifier).pauseSong();
+                        } else {
+                          ref.read(songsProvider.notifier).resumeSong();
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.skip_next),
+                      onPressed: () {
+                        ref.read(songsProvider.notifier).nextSong();
+                      },
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  // Navigate to full player screen
+                },
               ),
-              IconButton(icon: const Icon(Icons.skip_next), onPressed: () {}),
-            ],
-          ),
-          onTap: () {
-            // Navigate to full player screen
-          },
-        ),
-      ),
+            )
+          : null,
     );
   }
 }
