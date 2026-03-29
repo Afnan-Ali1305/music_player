@@ -21,7 +21,14 @@ class SongsNotifier extends StateNotifier<SongsState> {
           isLoading: true,
           hasPermission: false,
         ),
-      );
+      ) {
+    playerService.positionStream.listen((position) {
+      state = state.copyWith(currentSongPosition: position);
+    });
+    playerService.durationStream.listen((duration) {
+      state = state.copyWith(currentSongDuration: duration ?? Duration.zero);
+    });
+  }
 
   Future<void> fetchAllSongs() async {
     state = state.copyWith(hasPermission: await AudioPermission.request());
@@ -112,6 +119,13 @@ class SongsNotifier extends StateNotifier<SongsState> {
       playSong(nextSongIndex);
     }
   }
+
+  void seekTo(Duration position) {
+    if (state.currentSong == null) return;
+
+    playerService.seek(position); // your audio player seeks
+    state = state.copyWith(currentSongPosition: position);
+  }
 }
 
 class SongsState {
@@ -123,6 +137,8 @@ class SongsState {
   Song? currentSong; // ✅ NEW
   bool isPlaying; // ✅ NEW
   int? currentSongIndex;
+  final Duration currentSongPosition; // current play time
+  final Duration currentSongDuration;
 
   SongsState({
     required this.allSongs,
@@ -132,6 +148,8 @@ class SongsState {
     this.currentSong,
     this.isPlaying = false,
     this.currentSongIndex,
+    this.currentSongDuration = Duration.zero,
+    this.currentSongPosition = Duration.zero,
   });
 
   SongsState copyWith({
@@ -142,6 +160,8 @@ class SongsState {
     Song? currentSong,
     bool? isPlaying,
     int? currentSongIndex,
+    Duration? currentSongDuration,
+    Duration? currentSongPosition,
   }) {
     return SongsState(
       allSongs: allSongs ?? this.allSongs,
@@ -151,6 +171,8 @@ class SongsState {
       currentSong: currentSong ?? this.currentSong,
       isPlaying: isPlaying ?? this.isPlaying,
       currentSongIndex: currentSongIndex ?? this.currentSongIndex,
+      currentSongPosition: currentSongPosition ?? this.currentSongPosition,
+      currentSongDuration: currentSongDuration ?? this.currentSongDuration,
     );
   }
 }

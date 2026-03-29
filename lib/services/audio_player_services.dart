@@ -21,7 +21,17 @@ class AudioPlayerService {
   void pause() => _player.pause();
   void resume() => _player.play();
   void stop() => _player.stop();
+
+  void seek(Duration position) {
+    _player.seek(position);
+  }
+
+  // Streams
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<Duration?> get durationStream => _player.durationStream;
   
+  
+
   // Dispose the player when the app is closed
   void dispose() => _player.dispose();
 }

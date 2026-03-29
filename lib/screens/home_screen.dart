@@ -372,7 +372,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
                 onTap: () {
-                  // Navigate to full player screen
+                  context.router.push(const PlayerRoute());
                 },
               ),
             )

@@ -23,5 +23,10 @@ class AppRouter extends RootStackRouter {
       page: AppSettingsRoute.page,
       transitionsBuilder: TransitionsBuilders.fadeIn,
     ),
+
+    CustomRoute(
+      page: PlayerRoute.page,
+      transitionsBuilder: TransitionsBuilders.fadeIn,
+    ),
   ];
 }
