@@ -1,6 +1,6 @@
 import 'dart:typed_data';
-
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:music_player/models/.playlist.dart';
 
 class LocalStorage {
   static final box = Hive.box('appBox');
@@ -60,5 +60,24 @@ class LocalStorage {
     return (raw as Map).map(
       (key, value) => MapEntry(int.parse(key), value as bool),
     );
+  }
+
+  static Future<void> savePlaylists(List<Playlist> playlists) async {
+    final listMap = playlists.map((p) => p.toMap()).toList();
+    await box.put('user_playlists', listMap);
+  }
+
+  static List<Playlist> getPlaylists() {
+    final rawList = box.get('user_playlists', defaultValue: <dynamic>[]);
+
+    if (rawList is! List) {
+      return []; // safety
+    }
+
+    return rawList.map((item) {
+      // Safely convert _Map<dynamic, dynamic> → Map<String, dynamic>
+      final map = Map<String, dynamic>.from(item as Map);
+      return Playlist.fromMap(map);
+    }).toList();
   }
 }

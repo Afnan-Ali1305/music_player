@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:music_player/Database/local_storage.dart';
+import 'package:music_player/models/.playlist.dart';
 import 'package:music_player/models/song.dart';
 import 'package:music_player/permissions/audio_permission.dart';
 import 'package:music_player/services/audio_player_services.dart';
@@ -28,7 +29,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
 
   Future<void> _init() async {
     await loadFavourites();
-
+    await loadPlaylists();
     playerService.positionStream.listen((position) {
       state = state.copyWith(currentSongPosition: position);
     });
@@ -166,6 +167,82 @@ class SongsNotifier extends StateNotifier<SongsState> {
   void toggleRepeat() {
     state = state.copyWith(isRepeat: !state.isRepeat);
   }
+
+  Future<void> loadPlaylists() async {
+    final playlists = LocalStorage.getPlaylists();
+    state = state.copyWith(userPlaylists: playlists);
+  }
+
+  Future<void> _savePlaylists() async {
+    await LocalStorage.savePlaylists(state.userPlaylists);
+  }
+
+  void createPlaylist(String name) {
+    final newPlaylist = Playlist(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      songIds: [],
+    );
+    state = state.copyWith(
+      userPlaylists: [...state.userPlaylists, newPlaylist],
+    );
+    _savePlaylists();
+  }
+
+  void renamePlaylist(String playlistId, String newName) {
+    final updated = state.userPlaylists.map((p) {
+      if (p.id == playlistId) return p.copyWith(name: newName);
+      return p;
+    }).toList();
+    state = state.copyWith(userPlaylists: updated);
+    _savePlaylists();
+  }
+
+  void deletePlaylist(String playlistId) {
+    final updated = state.userPlaylists
+        .where((p) => p.id != playlistId)
+        .toList();
+    state = state.copyWith(userPlaylists: updated);
+    _savePlaylists();
+  }
+
+  void addSongToPlaylist(String playlistId, int songId) {
+    final updated = state.userPlaylists.map((p) {
+      if (p.id == playlistId && !p.songIds.contains(songId)) {
+        return p.copyWith(songIds: [...p.songIds, songId]);
+      }
+      return p;
+    }).toList();
+    state = state.copyWith(userPlaylists: updated);
+    _savePlaylists();
+  }
+
+  void removeSongFromPlaylist(String playlistId, int songId) {
+    final updated = state.userPlaylists.map((p) {
+      if (p.id == playlistId) {
+        return p.copyWith(
+          songIds: p.songIds.where((id) => id != songId).toList(),
+        );
+      }
+      return p;
+    }).toList();
+    state = state.copyWith(userPlaylists: updated);
+    _savePlaylists();
+  }
+
+  List<Song> getSongsInPlaylist(String playlistId) {
+    try {
+      final playlist = state.userPlaylists.firstWhere(
+        (p) => p.id == playlistId,
+      );
+      return state.allSongs
+          .where((song) => playlist.songIds.contains(song.songID))
+          .toList();
+    } catch (e) {
+      // firstWhere throws StateError if not found
+      return [];
+    }
+  }
 }
 
 // ================= STATE =================
@@ -187,7 +264,7 @@ class SongsState {
   final Map<int, bool> favouriteMap;
 
   final bool isRepeat;
-
+  final List<Playlist> userPlaylists;
   SongsState({
     required this.allSongs,
     required this.recentSongs,
@@ -200,7 +277,9 @@ class SongsState {
     this.currentSongPosition = Duration.zero,
     Map<int, bool>? favouriteMap,
     this.isRepeat = false,
-  }) : favouriteMap = favouriteMap ?? {};
+    List<Playlist>? userPlaylists,
+  }) : favouriteMap = favouriteMap ?? {},
+       userPlaylists = userPlaylists ?? [];
 
   SongsState copyWith({
     List<Song>? allSongs,
@@ -214,6 +293,7 @@ class SongsState {
     Duration? currentSongPosition,
     Map<int, bool>? favouriteMap,
     bool? isRepeat,
+    List<Playlist>? userPlaylists,
   }) {
     return SongsState(
       allSongs: allSongs ?? this.allSongs,
@@ -227,6 +307,7 @@ class SongsState {
       currentSongPosition: currentSongPosition ?? this.currentSongPosition,
       favouriteMap: favouriteMap ?? this.favouriteMap,
       isRepeat: isRepeat ?? this.isRepeat,
+      userPlaylists: userPlaylists ?? this.userPlaylists,
     );
   }
 }

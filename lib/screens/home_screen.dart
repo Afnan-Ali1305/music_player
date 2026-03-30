@@ -86,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // initApp();
       ref.read(songsProvider.notifier).fetchAllSongs();
@@ -302,7 +302,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Tab(text: "All Songs"),
                     Tab(text: "Favourites"),
                     Tab(text: "Playlist"),
-                    Tab(text: "Folders"),
                   ],
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
@@ -312,12 +311,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [
-                      SongsTab(),
-                      FavouriteSongsTab(),
-                      PlaylistTab(),
-                      FoldersTab(),
-                    ],
+                    children: [SongsTab(), FavouriteSongsTab(), PlaylistTab()],
                   ),
                 ),
               ],
