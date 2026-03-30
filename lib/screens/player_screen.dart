@@ -42,7 +42,9 @@ class PlayerScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.keyboard_arrow_down),
-          onPressed: () => context.router.pop(),
+          onPressed: () {
+            context.router.pop();
+          },
         ),
       ),
       body: SafeArea(
@@ -205,11 +207,24 @@ class PlayerScreen extends ConsumerWidget {
                   ),
 
                   // Favorite
-                  IconButton(
-                    iconSize: 36,
-                    icon: const Icon(Icons.favorite_border),
-                    onPressed: () {
-                      // Add favorite logic later if needed
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final isLiked =
+                          ref
+                              .watch(songsProvider)
+                              .favouriteMap[songState.currentSong!.songID] ??
+                          false;
+                      return IconButton(
+                        iconSize: 36,
+                        icon: isLiked
+                            ? Icon(Icons.favorite)
+                            : Icon(Icons.favorite_border),
+                        onPressed: () {
+                          ref
+                              .read(songsProvider.notifier)
+                              .toggleFavourite(songState.currentSong!.songID);
+                        },
+                      );
                     },
                   ),
                 ],

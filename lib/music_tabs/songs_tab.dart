@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:music_player/extensions/extension_constant.dart';
 import 'package:music_player/providers/songs_provider.dart';
+import 'package:music_player/theme/app_colors.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class SongsTab extends ConsumerStatefulWidget {
   // final List<Song> allSongs;
@@ -15,6 +18,12 @@ class SongsTab extends ConsumerStatefulWidget {
 }
 
 class _SongsTabState extends ConsumerState<SongsTab> {
+  String formatDuration(Duration d) {
+    final minutes = d.inMinutes;
+    final seconds = d.inSeconds % 60;
+    return "$minutes:${seconds.toString().padLeft(2, '0')}";
+  }
+
   @override
   Widget build(BuildContext context) {
     final songState = ref.watch(songsProvider);
@@ -35,42 +44,71 @@ class _SongsTabState extends ConsumerState<SongsTab> {
           //     ),
           //   );
           // },
-          leading: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(8),
+          // onTap: () {
+          //   context.router.push(const PlayerRoute());
+          // },
+          leading: QueryArtworkWidget(
+            id: songState.allSongs[index].songID,
+            type: ArtworkType.AUDIO,
+            artworkFit: BoxFit.cover,
+            artworkBorder: BorderRadius.circular(12),
+            artworkHeight: 50,
+            artworkWidth: 50,
+            nullArtworkWidget: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.music_note, color: Colors.white70),
             ),
-            child: const Icon(Icons.music_note, color: Colors.white70),
           ),
-          title: Text(songState.allSongs[index].songName),
-          subtitle: Text(songState.allSongs[index].songArtist),
+          title: Text(
+            songState.allSongs[index].songName,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            songState.allSongs[index].songArtist,
+            overflow: TextOverflow.ellipsis,
+          ),
           // trailing: IconButton(
           //   icon: const Icon(Icons.more_vert),
           //   onPressed: () {
 
           //   },
           // ),
-          trailing: PopupMenuButton(
-            child: Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'Play') {
-                // _playerService.playSong(songState.allSongs[index].songPath);
-                ref.read(songsProvider.notifier).playSong(index);
-              } else if (value == 'Pause') {
-                ref.read(songsProvider.notifier).pauseSong();
-              }
-              // ref.read(songsProvider.notifier).songsAction(index, value);
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: 'Play', child: Text("Play")),
-              PopupMenuItem(value: 'Pause', child: Text("Pause")),
-            ],
-          ),
-          // onTap: () {
-          //   // TODO: Play song using your audio player provider
-          // },
+          // trailing: PopupMenuButton(
+          //   child: Icon(Icons.more_vert),
+          //   onSelected: (value) {
+          //     if (value == 'Play') {
+          //       // _playerService.playSong(songState.allSongs[index].songPath);
+          //       ref.read(songsProvider.notifier).playSong(index);
+          //     } else if (value == 'Pause') {
+          //       ref.read(songsProvider.notifier).pauseSong();
+          //     } else if (value == 'fave') {
+          //       ref
+          //           .read(songsProvider.notifier)
+          //           .toggleFavourite(songState.allSongs[index].songID);
+          //     }
+          //     // ref.read(songsProvider.notifier).songsAction(index, value);
+          //   },
+          //   itemBuilder: (context) => [
+          //     PopupMenuItem(value: 'Play', child: Text("Play")),
+          //     PopupMenuItem(value: 'Pause', child: Text("Pause")),
+          //     PopupMenuItem(value: 'fav', child: Text("fav")),
+          //   ],
+          // ),
+          trailing: ref.watch(songsProvider).currentSongIndex == index
+              ? Icon(Icons.equalizer, color: AppColors.darkPrimary, size: 20)
+              : Text(
+                  formatDuration(songState.currentSongDuration),
+                  style: context.textTheme.labelSmall,
+                ),
+          onTap: () {
+            // TODO: Play song using your audio player provider
+            ref.read(songsProvider.notifier).playSong(index);
+          },
         );
       },
     );

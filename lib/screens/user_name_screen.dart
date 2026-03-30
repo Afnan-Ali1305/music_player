@@ -39,12 +39,18 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
                     ref
                         .read(userProvider.notifier)
                         .saveUser(nameController.text.trim());
-                    context.router.replace(const HomeRoute());
+                    context.router.push(const PickImageRoute());
                   } else {
                     debugPrint("Please enter user name");
                   }
                 },
                 child: Text("Save", style: context.textTheme.titleLarge),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  context.router.push(const PickImageRoute());
+                },
+                child: Text("Skip", style: context.textTheme.titleLarge),
               ),
             ],
           ),

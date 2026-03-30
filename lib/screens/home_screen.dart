@@ -52,12 +52,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:music_player/extensions/extension_constant.dart';
-import 'package:music_player/music_tabs/albums_tab.dart';
+import 'package:music_player/music_tabs/favourite_songs_tab.dart';
 import 'package:music_player/music_tabs/artisits_tab.dart';
 import 'package:music_player/music_tabs/folders_tab.dart';
 import 'package:music_player/music_tabs/songs_tab.dart';
 import 'package:music_player/providers/songs_provider.dart';
+import 'package:music_player/providers/user_provider.dart';
 import 'package:music_player/router/app_router.gr.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -134,11 +136,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final songState = ref.watch(songsProvider);
     final textTheme = context.textTheme;
+    final userState = ref.watch(userProvider);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          "PlayMusic",
+          "${userState.userName}",
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -149,10 +152,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             },
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
+            padding: const EdgeInsets.only(right: 10),
+            child: InkWell(
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey[200],
+                child: userState.profilePicture != null
+                    ? ClipOval(
+                        child: Image.memory(
+                          userState.profilePicture!,
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const Icon(Icons.person, size: 25, color: Colors.grey),
+              ),
+              onTap: () {
                 context.router.push(const AppSettingsRoute());
               },
             ),
@@ -221,33 +237,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             CrossAxisAlignment.start,
                                         children: [
                                           // ✅ Real album artwork
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            child: QueryArtworkWidget(
-                                              id: song.songID,
-                                              type: ArtworkType.AUDIO,
-                                              artworkWidth: 140,
-                                              artworkHeight: 140,
-                                              artworkFit: BoxFit.cover,
-                                              nullArtworkWidget: Container(
-                                                width: 140,
-                                                height: 140,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey[800],
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.music_note,
-                                                  size: 50,
-                                                  color: Colors.white70,
-                                                ),
+                                          QueryArtworkWidget(
+                                            id: song.songID,
+                                            type: ArtworkType.AUDIO,
+                                            artworkHeight: 125,
+                                            artworkWidth: 125,
+                                            artworkFit:
+                                                BoxFit.cover, // ⭐ important
+                                            artworkBorder:
+                                                BorderRadius.circular(12),
+                                            nullArtworkWidget: Container(
+                                              height: 125,
+                                              width: 125,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[800],
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Icon(
+                                                Icons.music_note,
+                                                size: 100,
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(height: 8),
+                                          Gap(8),
                                           // ✅ Real song title
                                           Text(
                                             song.songName,
@@ -285,8 +299,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                   unselectedLabelStyle: textTheme.titleSmall,
                   tabs: const [
-                    Tab(text: "Songs"),
-                    Tab(text: "Albums"),
+                    Tab(text: "All Songs"),
+                    Tab(text: "Favourites"),
                     Tab(text: "Artists"),
                     Tab(text: "Folders"),
                   ],
@@ -300,7 +314,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     controller: _tabController,
                     children: [
                       SongsTab(),
-                      AlbumsTab(),
+                      FavouriteSongsTab(),
                       ArtisitsTab(),
                       FoldersTab(),
                     ],
@@ -321,14 +335,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               child: ListTile(
                 dense: true,
-                leading: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[700],
-                    borderRadius: BorderRadius.circular(8),
+                leading: QueryArtworkWidget(
+                  id: songState.currentSong!.songID,
+                  type: ArtworkType.AUDIO,
+                  artworkFit: BoxFit.cover,
+                  artworkBorder: BorderRadius.circular(12),
+                  artworkHeight: 50,
+                  artworkWidth: 50,
+                  nullArtworkWidget: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.music_note, color: Colors.white70),
                   ),
-                  child: const Icon(Icons.album, color: Colors.white70),
                 ),
                 title: Text(
                   songState.currentSong?.songName ?? "",
