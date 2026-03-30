@@ -55,7 +55,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:music_player/extensions/extension_constant.dart';
 import 'package:music_player/music_tabs/favourite_songs_tab.dart';
-import 'package:music_player/music_tabs/artisits_tab.dart';
+import 'package:music_player/music_tabs/play_list_tab.dart';
 import 'package:music_player/music_tabs/folders_tab.dart';
 import 'package:music_player/music_tabs/songs_tab.dart';
 import 'package:music_player/providers/songs_provider.dart';
@@ -301,7 +301,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   tabs: const [
                     Tab(text: "All Songs"),
                     Tab(text: "Favourites"),
-                    Tab(text: "Artists"),
+                    Tab(text: "Playlist"),
                     Tab(text: "Folders"),
                   ],
                   isScrollable: true,
@@ -315,7 +315,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     children: [
                       SongsTab(),
                       FavouriteSongsTab(),
-                      ArtisitsTab(),
+                      PlaylistTab(),
                       FoldersTab(),
                     ],
                   ),

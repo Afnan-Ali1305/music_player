@@ -199,10 +199,15 @@ class PlayerScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     iconSize: 36,
-                    icon: const Icon(Icons.repeat),
+                    icon: Icon(
+                      Icons.repeat,
+                      color: ref.watch(songsProvider).isRepeat
+                          ? Colors.green
+                          : Colors.grey,
+                    ),
                     onPressed: () {
                       // Add repeat logic later if needed
-                      notifier.nextSong();
+                      ref.read(songsProvider.notifier).toggleRepeat();
                     },
                   ),
 

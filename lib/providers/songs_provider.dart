@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:music_player/Database/local_storage.dart';
 import 'package:music_player/models/song.dart';
 import 'package:music_player/permissions/audio_permission.dart';
 import 'package:music_player/services/audio_player_services.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-final songsProvider =
-    StateNotifierProvider<SongsNotifier, SongsState>((ref) {
+final songsProvider = StateNotifierProvider<SongsNotifier, SongsState>((ref) {
   return SongsNotifier();
 });
 
@@ -15,14 +15,14 @@ class SongsNotifier extends StateNotifier<SongsState> {
   final AudioPlayerService playerService = AudioPlayerService();
 
   SongsNotifier()
-      : super(
-          SongsState(
-            allSongs: [],
-            recentSongs: [],
-            isLoading: true,
-            hasPermission: false,
-          ),
-        ) {
+    : super(
+        SongsState(
+          allSongs: [],
+          recentSongs: [],
+          isLoading: true,
+          hasPermission: false,
+        ),
+      ) {
     _init();
   }
 
@@ -34,9 +34,22 @@ class SongsNotifier extends StateNotifier<SongsState> {
     });
 
     playerService.durationStream.listen((duration) {
-      state = state.copyWith(
-        currentSongDuration: duration ?? Duration.zero,
-      );
+      state = state.copyWith(currentSongDuration: duration ?? Duration.zero);
+    });
+
+    playerService.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        if (state.isRepeat) {
+          // 🔁 Repeat same song
+          if (state.currentSong != null) {
+            playerService.seek(Duration.zero);
+            playerService.playSong(state.currentSong!.songPath);
+          }
+        } else {
+          // ▶️ Next song
+          nextSong();
+        }
+      }
     });
   }
 
@@ -138,10 +151,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
   void toggleFavourite(int songID) async {
     final currentStatus = state.favouriteMap[songID] ?? false;
 
-    final newMap = {
-      ...state.favouriteMap,
-      songID: !currentStatus,
-    };
+    final newMap = {...state.favouriteMap, songID: !currentStatus};
 
     state = state.copyWith(favouriteMap: newMap);
 
@@ -151,6 +161,10 @@ class SongsNotifier extends StateNotifier<SongsState> {
   Future<void> loadFavourites() async {
     final favMap = await LocalStorage.getFavouriteMap();
     state = state.copyWith(favouriteMap: favMap);
+  }
+
+  void toggleRepeat() {
+    state = state.copyWith(isRepeat: !state.isRepeat);
   }
 }
 
@@ -171,7 +185,8 @@ class SongsState {
   final Duration currentSongDuration;
 
   final Map<int, bool> favouriteMap;
-  
+
+  final bool isRepeat;
 
   SongsState({
     required this.allSongs,
@@ -184,6 +199,7 @@ class SongsState {
     this.currentSongDuration = Duration.zero,
     this.currentSongPosition = Duration.zero,
     Map<int, bool>? favouriteMap,
+    this.isRepeat = false,
   }) : favouriteMap = favouriteMap ?? {};
 
   SongsState copyWith({
@@ -197,6 +213,7 @@ class SongsState {
     Duration? currentSongDuration,
     Duration? currentSongPosition,
     Map<int, bool>? favouriteMap,
+    bool? isRepeat,
   }) {
     return SongsState(
       allSongs: allSongs ?? this.allSongs,
@@ -209,6 +226,7 @@ class SongsState {
       currentSongDuration: currentSongDuration ?? this.currentSongDuration,
       currentSongPosition: currentSongPosition ?? this.currentSongPosition,
       favouriteMap: favouriteMap ?? this.favouriteMap,
+      isRepeat: isRepeat ?? this.isRepeat,
     );
   }
 }
