@@ -49,6 +49,8 @@
 //     );
 //   }
 // }
+import 'dart:math';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,7 +58,7 @@ import 'package:gap/gap.dart';
 import 'package:music_player/extensions/extension_constant.dart';
 import 'package:music_player/music_tabs/favourite_songs_tab.dart';
 import 'package:music_player/music_tabs/play_list_tab.dart';
-import 'package:music_player/music_tabs/folders_tab.dart';
+import 'package:music_player/music_tabs/albums_tab.dart';
 import 'package:music_player/music_tabs/songs_tab.dart';
 import 'package:music_player/providers/songs_provider.dart';
 import 'package:music_player/providers/user_provider.dart';
@@ -86,7 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // initApp();
       ref.read(songsProvider.notifier).fetchAllSongs();
@@ -141,7 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          "${userState.userName}",
+          userState.userName ?? "PlayMusic",
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -207,7 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Recently Added",
+                            "Recently Played",
                             style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -302,6 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Tab(text: "All Songs"),
                     Tab(text: "Favourites"),
                     Tab(text: "Playlist"),
+                    Tab(text: "Albums"),
                   ],
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
@@ -311,7 +314,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [SongsTab(), FavouriteSongsTab(), PlaylistTab()],
+                    children: [
+                      SongsTab(),
+                      FavouriteSongsTab(),
+                      PlaylistTab(),
+                      AlbumsTab(),
+                    ],
                   ),
                 ),
               ],

@@ -34,6 +34,8 @@ class UserNotifier extends StateNotifier<UserState> {
     if (pickedFile == null) return;
     final bytes = await pickedFile.readAsBytes();
     state = state.copyWith(profilePicture: bytes);
+    await LocalStorage.setVisited();
+
     await LocalStorage.setProfileImage(bytes);
   }
 

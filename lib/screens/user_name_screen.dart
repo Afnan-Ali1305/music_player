@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:music_player/Database/local_storage.dart';
 import 'package:music_player/extensions/extension_constant.dart';
 import 'package:music_player/providers/user_provider.dart';
 import 'package:music_player/router/app_router.gr.dart';
@@ -47,7 +48,8 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
                 child: Text("Save", style: context.textTheme.titleLarge),
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  await LocalStorage.setVisited();
                   context.router.push(const PickImageRoute());
                 },
                 child: Text("Skip", style: context.textTheme.titleLarge),

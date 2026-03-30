@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:music_player/Database/local_storage.dart';
 import 'package:music_player/extensions/extension_constant.dart';
 import 'package:music_player/providers/user_provider.dart';
 import 'package:music_player/router/app_router.gr.dart';
@@ -63,7 +64,9 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
               ),
               Gap(20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: ()async {
+    await LocalStorage.setVisited();
+
                   context.router.push(const HomeRoute());
                 },
                 child: Text("Skip", style: context.textTheme.titleLarge),
