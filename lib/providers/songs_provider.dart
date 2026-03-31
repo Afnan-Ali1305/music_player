@@ -30,6 +30,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
   Future<void> _init() async {
     await loadFavourites();
     await loadPlaylists();
+    await fetchAlbums();
     playerService.positionStream.listen((position) {
       state = state.copyWith(currentSongPosition: position);
     });
@@ -78,6 +79,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
             songArtist: s.artist ?? "Artist Name",
             songName: s.title,
             songPath: s.uri!,
+            albumId: s.albumId,
           ),
         )
         .toList();
@@ -160,7 +162,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
   }
 
   Future<void> loadFavourites() async {
-    final favMap = await LocalStorage.getFavouriteMap();
+    final favMap = LocalStorage.getFavouriteMap();
     state = state.copyWith(favouriteMap: favMap);
   }
 
@@ -242,6 +244,33 @@ class SongsNotifier extends StateNotifier<SongsState> {
       // firstWhere throws StateError if not found
       return [];
     }
+  }
+
+  // ================= ALBUMS =================
+  List<AlbumModel> albums = []; // We'll store raw AlbumModel here
+
+  Future<void> fetchAlbums() async {
+    final permission = await AudioPermission.request();
+    if (!permission) return;
+
+    final loadedAlbums = await audioQuery.queryAlbums(
+      sortType: AlbumSortType.ALBUM,
+      orderType: OrderType.ASC_OR_SMALLER,
+      uriType: UriType.EXTERNAL,
+      ignoreCase: true,
+    );
+
+    albums = loadedAlbums;
+    // No need to update state here as we'll read directly or add to SongsState if needed
+  }
+
+  // Get songs belonging to a specific album
+  List<Song> getSongsInAlbum(int albumId) {
+    return state.allSongs
+        .where(
+          (song) => song.albumId == albumId,
+        ) // We'll add albumId to Song model
+        .toList();
   }
 }
 
