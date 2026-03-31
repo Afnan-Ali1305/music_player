@@ -54,6 +54,8 @@ class _SongsTabState extends ConsumerState<SongsTab> {
             artworkBorder: BorderRadius.circular(12),
             artworkHeight: 50,
             artworkWidth: 50,
+            keepOldArtwork: true,
+
             nullArtworkWidget: Container(
               width: 50,
               height: 50,

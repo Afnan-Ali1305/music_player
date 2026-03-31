@@ -70,6 +70,8 @@ class PlayerScreen extends ConsumerWidget {
                       artworkWidth: 280,
                       artworkHeight: 280,
                       artworkFit: BoxFit.cover,
+                      keepOldArtwork: true,
+
                       nullArtworkWidget: Container(
                         color: Colors.grey[900],
                         child: const Icon(

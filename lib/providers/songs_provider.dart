@@ -19,7 +19,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
     : super(
         SongsState(
           allSongs: [],
-          recentSongs: [],
+          recentlyPlayedSongs: [],
           isLoading: true,
           hasPermission: false,
         ),
@@ -86,7 +86,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
 
     state = state.copyWith(
       allSongs: songsList,
-      recentSongs: songsList.take(2).toList(),
+      recentlyPlayedSongs: songsList.take(2).toList(),
       isLoading: false,
       hasPermission: true,
     );
@@ -278,7 +278,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
 
 class SongsState {
   final List<Song> allSongs;
-  final List<Song> recentSongs;
+  final List<Song> recentlyPlayedSongs;
 
   final bool hasPermission;
   final bool isLoading;
@@ -296,7 +296,7 @@ class SongsState {
   final List<Playlist> userPlaylists;
   SongsState({
     required this.allSongs,
-    required this.recentSongs,
+    required this.recentlyPlayedSongs,
     required this.isLoading,
     required this.hasPermission,
     this.currentSong,
@@ -312,7 +312,7 @@ class SongsState {
 
   SongsState copyWith({
     List<Song>? allSongs,
-    List<Song>? recentSongs,
+    List<Song>? recentlyPlayedSongs,
     bool? isLoading,
     bool? hasPermission,
     Song? currentSong,
@@ -326,7 +326,7 @@ class SongsState {
   }) {
     return SongsState(
       allSongs: allSongs ?? this.allSongs,
-      recentSongs: recentSongs ?? this.recentSongs,
+      recentlyPlayedSongs: recentlyPlayedSongs ?? this.recentlyPlayedSongs,
       isLoading: isLoading ?? this.isLoading,
       hasPermission: hasPermission ?? this.hasPermission,
       currentSong: currentSong ?? this.currentSong,

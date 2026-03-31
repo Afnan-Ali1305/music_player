@@ -99,6 +99,8 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                 artworkWidth: 70,
                                 artworkHeight: 70,
                                 artworkFit: BoxFit.cover,
+                                keepOldArtwork: true,
+
                                 artworkBorder: BorderRadius.zero,
                                 nullArtworkWidget: Container(
                                   width: 70,
@@ -221,6 +223,8 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                 artworkWidth: 55,
                                 artworkHeight: 55,
                                 artworkFit: BoxFit.cover,
+                                keepOldArtwork: true,
+
                                 nullArtworkWidget: Container(
                                   color: Colors.grey[800],
                                   child: const Icon(Icons.music_note, size: 30),

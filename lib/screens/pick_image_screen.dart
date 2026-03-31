@@ -64,8 +64,8 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
               ),
               Gap(20),
               ElevatedButton(
-                onPressed: ()async {
-    await LocalStorage.setVisited();
+                onPressed: () async {
+                  await LocalStorage.setVisited();
 
                   context.router.push(const HomeRoute());
                 },

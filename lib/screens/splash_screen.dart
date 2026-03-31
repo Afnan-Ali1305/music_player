@@ -33,9 +33,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final user = ref.read(userProvider);
     if (user.isFirstTime) {
       // Go to username input
-      if(context.mounted) {
-
-      context.router.replace(const UserNameRoute());
+      if (context.mounted) {
+        context.router.replace(const UserNameRoute());
       }
     } else {
       // Go to home
@@ -45,26 +44,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              // Your App Logo
-              FlutterLogo(size: 100),
-
-              SizedBox(height: 20),
-
-              // Loading Indicator
-              CircularProgressIndicator(),
-            ],
-          ),
-        ),
-      ),
-    );
+    // return Scaffold(
+    //   body: Container(
+    //     width: double.infinity,
+    //     height: double.infinity,
+    //     color: Theme.of(context).scaffoldBackgroundColor,
+    //     child: Center(
+    //       child: Column(
+    //         mainAxisSize: MainAxisSize.min,
+    //         children: [
+    //           // Your App Logo
+    //           // Image.asset(
+    //           //   "assets/logo/logo.png",
+    //           //   width: double.infinity,
+    //           //   height: double.infinity,
+    //           // ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
+  return SizedBox.shrink();
   }
 }

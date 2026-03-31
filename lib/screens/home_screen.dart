@@ -221,13 +221,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 180,
-                        child: songState.recentSongs.isEmpty
+                        child: songState.recentlyPlayedSongs.isEmpty
                             ? const Center(child: Text("No songs found"))
                             : ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: songState.recentSongs.length,
+                                itemCount: songState.recentlyPlayedSongs.length,
                                 itemBuilder: (context, index) {
-                                  final song = songState.recentSongs[index];
+                                  final song = songState.recentlyPlayedSongs[index];
                                   return Padding(
                                     padding: const EdgeInsets.only(right: 12),
                                     child: SizedBox(
@@ -246,6 +246,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                                 BoxFit.cover, // ⭐ important
                                             artworkBorder:
                                                 BorderRadius.circular(12),
+                                            keepOldArtwork: true,
                                             nullArtworkWidget: Container(
                                               height: 125,
                                               width: 125,
@@ -342,6 +343,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   artworkBorder: BorderRadius.circular(12),
                   artworkHeight: 50,
                   artworkWidth: 50,
+                  keepOldArtwork: true,
                   nullArtworkWidget: Container(
                     width: 50,
                     height: 50,

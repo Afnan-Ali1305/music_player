@@ -47,6 +47,8 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
                 },
                 child: Text("Save", style: context.textTheme.titleLarge),
               ),
+              Gap(20),
+
               ElevatedButton(
                 onPressed: () async {
                   await LocalStorage.setVisited();
