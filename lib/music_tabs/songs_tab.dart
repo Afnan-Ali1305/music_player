@@ -109,7 +109,14 @@ class _SongsTabState extends ConsumerState<SongsTab> {
                 ),
           onTap: () {
             // TODO: Play song using your audio player provider
-            ref.read(songsProvider.notifier).playSong(index);
+            ref
+                .read(songsProvider.notifier)
+                .playFromQueue(
+                  song: songState.allSongs[index],
+                  queue: songState.allSongs, // Pass full list as queue
+                  queueType: QueueType.allSongs,
+                  startingIndex: index,
+                );
           },
         );
       },

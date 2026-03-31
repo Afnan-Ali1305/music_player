@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_player/models/.playlist.dart';
 
 class LocalStorage {
-  static final box = Hive.box('appBox');
+  static final box = Hive.box('Musify');
 
   static Future<void> setTheme(bool isDark) async {
     await box.put('isDarkMode', isDark);
@@ -87,6 +87,8 @@ class LocalStorage {
   }
 
   static List<int> getRecentlyPlayedIds() {
-    return List<int>.from(box.get('recently_played_ids', defaultValue: <int>[]));
+    return List<int>.from(
+      box.get('recently_played_ids', defaultValue: <int>[]),
+    );
   }
 }

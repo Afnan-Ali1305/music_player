@@ -36,13 +36,21 @@ class FavouriteSongsTab extends ConsumerWidget {
         return ListTile(
           onTap: () {
             // 🔥 IMPORTANT: correct index mapping
-            final realIndex = songState.allSongs.indexWhere(
-              (s) => s.songID == song.songID,
-            );
+            // final realIndex = songState.allSongs.indexWhere(
+            //   (s) => s.songID == song.songID,
+            // );
 
-            if (realIndex != -1) {
-              notifier.playSong(realIndex);
-            }
+            // if (realIndex != -1) {
+            //   notifier.playSong(realIndex);
+            // }
+                ref
+                .read(songsProvider.notifier)
+                .playFromQueue(
+                  song: song,
+                  queue: favSongs, // Pass full list as queue
+                  queueType: QueueType.favourites,
+                  startingIndex: index,
+                );
           },
 
           leading: QueryArtworkWidget(
@@ -75,6 +83,7 @@ class FavouriteSongsTab extends ConsumerWidget {
                   formatDuration(songState.currentSongDuration),
                   style: context.textTheme.labelSmall,
                 ),
+                
         );
       },
     );

@@ -145,12 +145,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Navigate to search screen
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.search),
+          //   onPressed: () {
+          //     // TODO: Navigate to search screen
+          //   },
+          // ),
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: InkWell(
@@ -227,56 +227,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     padding: const EdgeInsets.only(right: 12),
                                     child: SizedBox(
                                       width: 140,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // ✅ Real album artwork
-                                          QueryArtworkWidget(
-                                            id: song.songID,
-                                            type: ArtworkType.AUDIO,
-                                            artworkHeight: 125,
-                                            artworkWidth: 125,
-                                            artworkFit:
-                                                BoxFit.cover, // ⭐ important
-                                            artworkBorder:
-                                                BorderRadius.circular(12),
-                                            keepOldArtwork: true,
-                                            nullArtworkWidget: Container(
-                                              height: 125,
-                                              width: 125,
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey[800],
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Icon(
-                                                Icons.music_note,
-                                                size: 100,
-                                                color: Colors.white,
+                                      child: InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(songsProvider.notifier)
+                                              .playFromQueue(
+                                                song: song,
+                                                queue: songState
+                                                    .recentlyPlayedSongs, // Use recently played as queue
+                                                queueType: QueueType
+                                                    .allSongs, // You can create QueueType.recentlyPlayed later if you want
+                                              );
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // ✅ Real album artwork
+                                            QueryArtworkWidget(
+                                              id: song.songID,
+                                              type: ArtworkType.AUDIO,
+                                              artworkHeight: 125,
+                                              artworkWidth: 125,
+                                              artworkFit:
+                                                  BoxFit.cover, // ⭐ important
+                                              artworkBorder:
+                                                  BorderRadius.circular(12),
+                                              keepOldArtwork: true,
+                                              nullArtworkWidget: Container(
+                                                height: 125,
+                                                width: 125,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey[800],
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Icon(
+                                                  Icons.music_note,
+                                                  size: 100,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          Gap(8),
-                                          // ✅ Real song title
-                                          Text(
-                                            song.songName,
-                                            style: textTheme.bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          // ✅ Real artist name
-                                          Text(
-                                            song.songArtist,
-                                            style: textTheme.bodySmall
-                                                ?.copyWith(color: Colors.grey),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
+                                            Gap(8),
+                                            // ✅ Real song title
+                                            Text(
+                                              song.songName,
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            // ✅ Real artist name
+                                            Text(
+                                              song.songArtist,
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.grey,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );

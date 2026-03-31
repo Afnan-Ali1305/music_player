@@ -8,7 +8,7 @@ import 'package:music_player/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  await Hive.openBox('appBox');
+  await Hive.openBox('Musify');
 
   runApp(ProviderScope(child: MyApp()));
 }
