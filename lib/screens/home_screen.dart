@@ -198,36 +198,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           : Column(
               children: [
                 // ✅ Recently Played Section with real song data
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Recently Played",
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                if (songState.recentlyPlayedSongs.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Recently Played",
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Text("See all"),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 180,
-                        child: songState.recentlyPlayedSongs.isEmpty
-                            ? const Center(child: Text("No songs found"))
-                            : ListView.builder(
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 180,
+                          child:
+                              // songState.recentlyPlayedSongs.isNotEmpty
+                              // ? const Center(child: Text("No songs found"))
+                              // :
+                              ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: songState.recentlyPlayedSongs.length,
                                 itemBuilder: (context, index) {
-                                  final song = songState.recentlyPlayedSongs[index];
+                                  final song =
+                                      songState.recentlyPlayedSongs[index];
                                   return Padding(
                                     padding: const EdgeInsets.only(right: 12),
                                     child: SizedBox(
@@ -287,10 +282,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   );
                                 },
                               ),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
 
                 // Library Tabs
                 TabBar(

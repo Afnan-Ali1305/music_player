@@ -84,14 +84,43 @@ class SongsNotifier extends StateNotifier<SongsState> {
         )
         .toList();
 
+    // Load recently played from Hive and map to real Song objects
+    final recentIds = LocalStorage.getRecentlyPlayedIds();
+    final recentSongs =
+        songsList.where((song) => recentIds.contains(song.songID)).toList()
+          ..sort(
+            (a, b) => recentIds.indexOf(a.songID) - recentIds.indexOf(b.songID),
+          );
+
     state = state.copyWith(
       allSongs: songsList,
-      recentlyPlayedSongs: songsList.take(2).toList(),
+      recentlyPlayedSongs: recentSongs, //songsList.take(2).toList(),
       isLoading: false,
       hasPermission: true,
     );
   }
 
+  // ================= RECENTLY PLAYED (NEW) =================
+  void _addToRecentlyPlayed(Song song) {
+    final currentRecent = List<Song>.from(state.recentlyPlayedSongs);
+
+    // Remove if already exists
+    currentRecent.removeWhere((s) => s.songID == song.songID);
+
+    // Add to front
+    currentRecent.insert(0, song);
+
+    // Keep only 10
+    if (currentRecent.length > 10) {
+      currentRecent.removeLast();
+    }
+
+    state = state.copyWith(recentlyPlayedSongs: currentRecent);
+
+    // Save IDs to Hive
+    final ids = currentRecent.map((s) => s.songID).toList();
+    LocalStorage.saveRecentlyPlayed(ids);
+  }
   // ================= PLAYER =================
 
   void playSong(int index) {
@@ -104,6 +133,8 @@ class SongsNotifier extends StateNotifier<SongsState> {
       currentSongIndex: index,
       isPlaying: true,
     );
+
+    _addToRecentlyPlayed(song);
   }
 
   void pauseSong() {
@@ -246,31 +277,23 @@ class SongsNotifier extends StateNotifier<SongsState> {
     }
   }
 
-  // ================= ALBUMS =================
-  List<AlbumModel> albums = []; // We'll store raw AlbumModel here
+  // ================= albums ========================
 
+  List<AlbumModel> albums = [];
   Future<void> fetchAlbums() async {
     final permission = await AudioPermission.request();
     if (!permission) return;
-
     final loadedAlbums = await audioQuery.queryAlbums(
       sortType: AlbumSortType.ALBUM,
       orderType: OrderType.ASC_OR_SMALLER,
       uriType: UriType.EXTERNAL,
       ignoreCase: true,
     );
-
     albums = loadedAlbums;
-    // No need to update state here as we'll read directly or add to SongsState if needed
   }
 
-  // Get songs belonging to a specific album
   List<Song> getSongsInAlbum(int albumId) {
-    return state.allSongs
-        .where(
-          (song) => song.albumId == albumId,
-        ) // We'll add albumId to Song model
-        .toList();
+    return state.allSongs.where((song) => song.albumId == albumId).toList();
   }
 }
 

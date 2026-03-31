@@ -80,4 +80,13 @@ class LocalStorage {
       return Playlist.fromMap(map);
     }).toList();
   }
+
+  // ================= RECENTLY PLAYED (NEW) =================
+  static Future<void> saveRecentlyPlayed(List<int> songIds) async {
+    await box.put('recently_played_ids', songIds);
+  }
+
+  static List<int> getRecentlyPlayedIds() {
+    return List<int>.from(box.get('recently_played_ids', defaultValue: <int>[]));
+  }
 }
