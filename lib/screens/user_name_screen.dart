@@ -22,7 +22,7 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -40,21 +40,27 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
                     ref
                         .read(userProvider.notifier)
                         .saveUser(nameController.text.trim());
-                    context.router.push(const PickImageRoute());
+                    context.router.replace(const PickImageRoute());
                   } else {
                     debugPrint("Please enter user name");
                   }
                 },
-                child: Text("Save", style: context.textTheme.titleLarge),
+                child: Text(
+                  "Save".toUpperCase(),
+                  style: context.textTheme.titleLarge!.copyWith(fontSize: 20),
+                ),
               ),
               Gap(20),
 
               ElevatedButton(
                 onPressed: () async {
                   await LocalStorage.setVisited();
-                  context.router.push(const PickImageRoute());
+                  context.router.replace(const PickImageRoute());
                 },
-                child: Text("Skip", style: context.textTheme.titleLarge),
+                child: Text(
+                  "Skip".toUpperCase(),
+                  style: context.textTheme.titleLarge!.copyWith(fontSize: 20),
+                ),
               ),
             ],
           ),

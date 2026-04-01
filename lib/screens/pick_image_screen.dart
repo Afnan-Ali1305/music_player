@@ -23,7 +23,7 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
           child: Column(
             children: [
               Align(
@@ -58,18 +58,24 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
               Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  context.router.push(const HomeRoute());
+                  context.router.replace(const HomeRoute());
                 },
-                child: Text("Save", style: context.textTheme.titleLarge),
+                child: Text(
+                  "Save".toUpperCase(),
+                  style: context.textTheme.titleLarge!.copyWith(fontSize: 20),
+                ),
               ),
               Gap(20),
               ElevatedButton(
                 onPressed: () async {
                   await LocalStorage.setVisited();
 
-                  context.router.push(const HomeRoute());
+                  context.router.replace(const HomeRoute());
                 },
-                child: Text("Skip", style: context.textTheme.titleLarge),
+                child: Text(
+                  "Skip".toUpperCase(),
+                  style: context.textTheme.titleLarge!.copyWith(fontSize: 20),
+                ),
               ),
             ],
           ),

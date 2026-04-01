@@ -179,20 +179,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ? const Center(child: CircularProgressIndicator())
           : !songState.hasPermission
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.lock, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text("Storage permission required"),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref.read(songsProvider.notifier).fetchAllSongs();
-                    },
-                    child: const Text("Grant Permission"),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.lock, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text("Storage permission required"),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.read(songsProvider.notifier).fetchAllSongs();
+                      },
+                      child: const Text("Grant Permission"),
+                    ),
+                  ],
+                ),
               ),
             )
           : Column(

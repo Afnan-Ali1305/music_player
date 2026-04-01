@@ -10,7 +10,7 @@ class LocalStorage {
   }
 
   static bool getTheme() {
-    return box.get('isDarkMode', defaultValue: true);
+    return box.get('isDarkMode', defaultValue: false);
   }
 
   static bool isFirstTime() {
