@@ -382,16 +382,17 @@ class SongsNotifier extends StateNotifier<SongsState> {
   final AudioPlayerService playerService = AudioPlayerService();
 
   SongsNotifier()
-      : super(
-          SongsState(
-            allSongs: [],
-            recentlyPlayedSongs: [],
-            currentQueue: [],
-            queueType: QueueType.allSongs,
-            isLoading: true,
-            hasPermission: false,
-          ),
-        ) {
+    : super(
+        SongsState(
+          allSongs: [],
+          recentlyPlayedSongs: [],
+          currentQueue: [],
+          queueType: QueueType.allSongs,
+          isLoading: true,
+          hasPermission: false,
+          allSongsDuration: [],
+        ),
+      ) {
     _init();
   }
 
@@ -431,36 +432,54 @@ class SongsNotifier extends StateNotifier<SongsState> {
       return;
     }
 
-    final loadedSongs = await audioQuery.querySongs(
+    final onlyMusic = await audioQuery.querySongs(
       sortType: SongSortType.DATE_ADDED,
       orderType: OrderType.DESC_OR_GREATER,
       uriType: UriType.EXTERNAL,
       ignoreCase: true,
     );
-
+    // final loadedSongs = await audioQuery.querySongs(
+    //   sortType: SongSortType.DATE_ADDED,
+    //   orderType: OrderType.DESC_OR_GREATER,
+    //   uriType: UriType.EXTERNAL,
+    //   ignoreCase: true,
+    // );
+    final loadedSongs = onlyMusic.where((song) {
+      final path = song.data.toLowerCase();
+      return song.isMusic == true &&
+          (song.duration ?? 0) > 180000 &&
+          !path.contains("whatsapp") &&
+          !path.contains("record");
+    });
     final songsList = loadedSongs
-        .map((s) => Song(
-              songID: s.id,
-              songArtist: s.artist ?? "Unknown Artist",
-              songName: s.title,
-              songPath: s.uri!,
-              albumId: s.albumId,
-            ))
+        .map(
+          (s) => Song(
+            songID: s.id,
+            songArtist: s.artist ?? "Unknown Artist",
+            songName: s.title,
+            songPath: s.uri!,
+            albumId: s.albumId,
+          ),
+        )
         .toList();
 
     // Load recently played from Hive
     final recentIds = LocalStorage.getRecentlyPlayedIds();
-    final recentSongs = songsList
-        .where((song) => recentIds.contains(song.songID))
-        .toList()
-      ..sort((a, b) => recentIds.indexOf(a.songID) - recentIds.indexOf(b.songID));
-
+    final recentSongs =
+        songsList.where((song) => recentIds.contains(song.songID)).toList()
+          ..sort(
+            (a, b) => recentIds.indexOf(a.songID) - recentIds.indexOf(b.songID),
+          );
+    final durationOfSongs = loadedSongs
+        .map((song) => Duration(milliseconds: song.duration ?? 0))
+        .toList();
     state = state.copyWith(
       allSongs: songsList,
       recentlyPlayedSongs: recentSongs,
       currentQueue: songsList, // Default queue = all songs
       isLoading: false,
       hasPermission: true,
+      allSongsDuration: durationOfSongs,
     );
   }
 
@@ -493,7 +512,8 @@ class SongsNotifier extends StateNotifier<SongsState> {
     required QueueType queueType,
     int? startingIndex,
   }) {
-    final index = startingIndex ?? queue.indexWhere((s) => s.songID == song.songID);
+    final index =
+        startingIndex ?? queue.indexWhere((s) => s.songID == song.songID);
 
     playerService.playSong(song.songPath);
 
@@ -623,7 +643,9 @@ class SongsNotifier extends StateNotifier<SongsState> {
   }
 
   void deletePlaylist(String playlistId) {
-    final updated = state.userPlaylists.where((p) => p.id != playlistId).toList();
+    final updated = state.userPlaylists
+        .where((p) => p.id != playlistId)
+        .toList();
     state = state.copyWith(userPlaylists: updated);
     _savePlaylists();
   }
@@ -654,7 +676,9 @@ class SongsNotifier extends StateNotifier<SongsState> {
 
   List<Song> getSongsInPlaylist(String playlistId) {
     try {
-      final playlist = state.userPlaylists.firstWhere((p) => p.id == playlistId);
+      final playlist = state.userPlaylists.firstWhere(
+        (p) => p.id == playlistId,
+      );
       return state.allSongs
           .where((song) => playlist.songIds.contains(song.songID))
           .toList();
@@ -685,12 +709,7 @@ class SongsNotifier extends StateNotifier<SongsState> {
 }
 
 // ================= QUEUE TYPE ENUM =================
-enum QueueType {
-  allSongs,
-  favourites,
-  playlist,
-  album,
-}
+enum QueueType { allSongs, favourites, playlist, album }
 
 // ================= SONGS STATE =================
 class SongsState {
@@ -709,7 +728,7 @@ class SongsState {
   final Map<int, bool> favouriteMap;
   final bool isRepeat;
   final List<Playlist> userPlaylists;
-
+  final List<Duration> allSongsDuration;
   SongsState({
     required this.allSongs,
     required this.recentlyPlayedSongs,
@@ -725,8 +744,9 @@ class SongsState {
     Map<int, bool>? favouriteMap,
     this.isRepeat = false,
     List<Playlist>? userPlaylists,
-  })  : favouriteMap = favouriteMap ?? {},
-        userPlaylists = userPlaylists ?? [];
+    required this.allSongsDuration,
+  }) : favouriteMap = favouriteMap ?? {},
+       userPlaylists = userPlaylists ?? [];
 
   SongsState copyWith({
     List<Song>? allSongs,
@@ -743,6 +763,7 @@ class SongsState {
     Map<int, bool>? favouriteMap,
     bool? isRepeat,
     List<Playlist>? userPlaylists,
+    List<Duration>? allSongsDuration,
   }) {
     return SongsState(
       allSongs: allSongs ?? this.allSongs,
@@ -759,6 +780,7 @@ class SongsState {
       favouriteMap: favouriteMap ?? this.favouriteMap,
       isRepeat: isRepeat ?? this.isRepeat,
       userPlaylists: userPlaylists ?? this.userPlaylists,
+      allSongsDuration: allSongsDuration ?? this.allSongsDuration,
     );
   }
 }

@@ -61,6 +61,7 @@ import 'package:music_player/music_tabs/songs_tab.dart';
 import 'package:music_player/providers/songs_provider.dart';
 import 'package:music_player/providers/user_provider.dart';
 import 'package:music_player/router/app_router.gr.dart';
+import 'package:music_player/theme/app_colors.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 @RoutePage()
@@ -75,20 +76,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // ✅ Properly typed lists
-  // List<Song> songs = [];
-  // List<Song> recentSongs = [];
-  // bool hasPermission = false;
-  // bool isLoading = true;
-
-  // final OnAudioQuery _audioQuery = OnAudioQuery();
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // initApp();
       ref.read(songsProvider.notifier).fetchAllSongs();
     });
   }
@@ -99,100 +91,117 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  // ✅ Properly load all songs with metadata
-  // Future<void> initApp() async {
-  //   hasPermission = await AudioPermission.request();
-
-  //   if (hasPermission) {
-  //     final loadedSongs = await _audioQuery.querySongs(
-  //       sortType: SongSortType.DATE_ADDED,
-  //       orderType: OrderType.DESC_OR_GREATER,
-  //       uriType: UriType.EXTERNAL,
-  //       ignoreCase: true,
-  //     );
-
-  //     setState(() {
-  //       // ✅ Transform the list to store only specific data
-  //       songs = loadedSongs
-  //           .map(
-  //             (s) => Song(
-  //               songID: s.id,
-  //               songName: s.title,
-  //               songArtist: s.artist ?? "Unknown Artist",
-  //               songPath: s.uri!,
-  //             ),
-  //           )
-  //           .toList();
-
-  //       recentSongs = songs.take(10).toList();
-  //       isLoading = false;
-  //     });
-  //   } else {
-  //     setState(() => isLoading = false);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     final songState = ref.watch(songsProvider);
     final textTheme = context.textTheme;
     final userState = ref.watch(userProvider);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Adaptive Brand Colors
+    final primaryColor = AppColors.brandGold; // #FFC107 - Main accent
+    final charcoal = AppColors.brandCharcoal; // #212121
+    final textPrimary = isDark ? Colors.white : charcoal;
+    final textSecondary = isDark ? Colors.white70 : charcoal.withOpacity(0.75);
+
     return Scaffold(
+      // ====================== APP BAR ======================
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [charcoal.withOpacity(0.95), Colors.black87]
+                  : [Colors.white, Colors.white.withOpacity(0.98)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
         title: Text(
           userState.userName ?? "PlayMusic",
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: textPrimary,
+            letterSpacing: 0.5,
+          ),
         ),
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.search),
-          //   onPressed: () {
-          //     // TODO: Navigate to search screen
-          //   },
-          // ),
           Padding(
-            padding: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.only(right: 16),
             child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () => context.router.push(const AppSettingsRoute()),
               child: CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.grey[200],
+                radius: 20,
+                backgroundColor: primaryColor.withOpacity(0.12),
                 child: userState.profilePicture != null
                     ? ClipOval(
                         child: Image.memory(
                           userState.profilePicture!,
-                          width: 160,
-                          height: 160,
                           fit: BoxFit.cover,
                         ),
                       )
-                    : const Icon(Icons.person, size: 25, color: Colors.grey),
+                    : Icon(Icons.person, size: 26, color: textPrimary),
               ),
-              onTap: () {
-                context.router.push(const AppSettingsRoute());
-              },
             ),
           ),
         ],
       ),
+
       body: songState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: primaryColor))
           : !songState.hasPermission
-          ? Center(
+          ? //_buildPermissionScreen(textPrimary, textSecondary, primaryColor)
+            Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.lock, size: 64, color: Colors.grey),
-                    const SizedBox(height: 16),
-                    const Text("Storage permission required"),
+                    Icon(
+                      Icons.music_note_outlined,
+                      size: 90,
+                      color: primaryColor.withOpacity(0.6),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Storage Permission Required",
+                      style: context.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () {
-                        ref.read(songsProvider.notifier).fetchAllSongs();
-                      },
-                      child: const Text("Grant Permission"),
+                    Text(
+                      "Please allow access to your music files",
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        color: textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.folder_open),
+                      label: const Text("Grant Permission"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () =>
+                          ref.read(songsProvider.notifier).fetchAllSongs(),
                     ),
                   ],
                 ),
@@ -200,134 +209,149 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             )
           : Column(
               children: [
-                // ✅ Recently Played Section with real song data
+                // ==================== RECENTLY PLAYED ====================
                 if (songState.recentlyPlayedSongs.isNotEmpty) ...[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           "Recently Played",
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         SizedBox(
-                          height: 180,
-                          child:
-                              // songState.recentlyPlayedSongs.isNotEmpty
-                              // ? const Center(child: Text("No songs found"))
-                              // :
-                              ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: songState.recentlyPlayedSongs.length,
-                                itemBuilder: (context, index) {
-                                  final song =
-                                      songState.recentlyPlayedSongs[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 12),
-                                    child: SizedBox(
-                                      width: 140,
-                                      child: InkWell(
-                                        onTap: () {
-                                          ref
-                                              .read(songsProvider.notifier)
-                                              .playFromQueue(
-                                                song: song,
-                                                queue: songState
-                                                    .recentlyPlayedSongs, // Use recently played as queue
-                                                queueType: QueueType
-                                                    .allSongs, // You can create QueueType.recentlyPlayed later if you want
-                                              );
-                                        },
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            // ✅ Real album artwork
-                                            QueryArtworkWidget(
-                                              id: song.songID,
-                                              type: ArtworkType.AUDIO,
-                                              artworkHeight: 125,
-                                              artworkWidth: 125,
-                                              artworkFit:
-                                                  BoxFit.cover, // ⭐ important
-                                              artworkBorder:
-                                                  BorderRadius.circular(12),
-                                              keepOldArtwork: true,
-                                              nullArtworkWidget: Container(
-                                                height: 125,
-                                                width: 125,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey[800],
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
+                          height: 195,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: songState.recentlyPlayedSongs.length,
+                            itemBuilder: (context, index) {
+                              final song = songState.recentlyPlayedSongs[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: SizedBox(
+                                  width: 148,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      ref
+                                          .read(songsProvider.notifier)
+                                          .playFromQueue(
+                                            song: song,
+                                            queue:
+                                                songState.recentlyPlayedSongs,
+                                            queueType: QueueType.allSongs,
+                                          );
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: primaryColor.withOpacity(
+                                                  0.25,
                                                 ),
-                                                child: Icon(
-                                                  Icons.music_note,
-                                                  size: 100,
-                                                  color: Colors.white,
-                                                ),
+                                                blurRadius: 12,
+                                                offset: const Offset(0, 6),
+                                              ),
+                                            ],
+                                          ),
+                                          child: QueryArtworkWidget(
+                                            id: song.songID,
+                                            type: ArtworkType.AUDIO,
+                                            artworkHeight: 148,
+                                            artworkWidth: 148,
+                                            artworkFit: BoxFit.cover,
+                                            artworkBorder:
+                                                BorderRadius.circular(16),
+                                            keepOldArtwork: true,
+                                            nullArtworkWidget: Container(
+                                              height: 148,
+                                              width: 148,
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? charcoal
+                                                    : Colors.grey[200],
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.music_note,
+                                                size: 72,
+                                                color: primaryColor,
                                               ),
                                             ),
-                                            Gap(8),
-                                            // ✅ Real song title
-                                            Text(
-                                              song.songName,
-                                              style: textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            // ✅ Real artist name
-                                            Text(
-                                              song.songArtist,
-                                              style: textTheme.bodySmall
-                                                  ?.copyWith(
-                                                    color: Colors.grey,
-                                                  ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
+                                        Gap(5),
+                                        Text(
+                                          song.songName,
+                                          style: textTheme.bodyLarge?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: textPrimary,
+                                          ),
+                                          // maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          song.songArtist,
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: textSecondary,
+                                          ),
+                                          // maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
 
-                // Library Tabs
+                // ====================== TABS ======================
                 TabBar(
                   controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   labelStyle: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                   unselectedLabelStyle: textTheme.titleSmall,
+                  labelColor: primaryColor,
+                  unselectedLabelColor: textSecondary,
+                  indicatorColor: primaryColor,
+                  indicatorWeight: 3.5,
+                  indicatorPadding: const EdgeInsets.symmetric(horizontal: 12),
                   tabs: const [
                     Tab(text: "All Songs"),
                     Tab(text: "Favourites"),
                     Tab(text: "Playlist"),
                     Tab(text: "Albums"),
                   ],
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
                 ),
 
                 // Tab Content
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [
+                    children: const [
                       SongsTab(),
                       FavouriteSongsTab(),
                       PlaylistTab(),
@@ -338,83 +362,111 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ],
             ),
 
-      // Mini Player at Bottom
+      // ====================== MINI PLAYER ======================
       bottomNavigationBar: songState.currentSong != null
           ? Container(
-              height: 72,
+              height: 78,
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade800, width: 0.5),
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
               ),
               child: ListTile(
-                dense: true,
-                leading: QueryArtworkWidget(
-                  id: songState.currentSong!.songID,
-                  type: ArtworkType.AUDIO,
-                  artworkFit: BoxFit.cover,
-                  artworkBorder: BorderRadius.circular(12),
-                  artworkHeight: 50,
-                  artworkWidth: 50,
-                  keepOldArtwork: true,
-                  nullArtworkWidget: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                leading: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: QueryArtworkWidget(
+                    id: songState.currentSong!.songID,
+                    type: ArtworkType.AUDIO,
+                    artworkHeight: 54,
+                    artworkWidth: 54,
+                    artworkFit: BoxFit.cover,
+                    artworkBorder: BorderRadius.circular(12),
+                    keepOldArtwork: true,
+                    nullArtworkWidget: Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: isDark ? charcoal : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.music_note,
+                        size: 32,
+                        color: primaryColor,
+                      ),
                     ),
-                    child: const Icon(Icons.music_note, color: Colors.white70),
                   ),
                 ),
                 title: Text(
                   songState.currentSong?.songName ?? "",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: textPrimary,
+                  ),
                 ),
                 subtitle: Text(
                   songState.currentSong?.songArtist ?? "",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(color: textSecondary),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.skip_previous),
-                      onPressed: () {
-                        ref.read(songsProvider.notifier).previousSong();
-                      },
+                      icon: const Icon(Icons.skip_previous_rounded),
+                      color: textPrimary,
+                      iconSize: 28,
+                      onPressed: () =>
+                          ref.read(songsProvider.notifier).previousSong(),
                     ),
                     IconButton(
                       icon: songState.isPlaying
-                          ? Icon(Icons.pause)
-                          : Icon(Icons.play_arrow),
+                          ? const Icon(Icons.pause_rounded)
+                          : const Icon(Icons.play_arrow_rounded),
+                      color: primaryColor,
+                      iconSize: 36,
                       onPressed: () {
-                        if (songState.currentSong == null) return;
-
-                        if (songState.isPlaying) {
-                          ref.read(songsProvider.notifier).pauseSong();
-                        } else {
-                          ref.read(songsProvider.notifier).resumeSong();
-                        }
+                        final notifier = ref.read(songsProvider.notifier);
+                        songState.isPlaying
+                            ? notifier.pauseSong()
+                            : notifier.resumeSong();
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.skip_next),
-                      onPressed: () {
-                        ref.read(songsProvider.notifier).nextSong();
-                      },
+                      icon: const Icon(Icons.skip_next_rounded),
+                      color: textPrimary,
+                      iconSize: 28,
+                      onPressed: () =>
+                          ref.read(songsProvider.notifier).nextSong(),
                     ),
                   ],
                 ),
-                onTap: () {
-                  context.router.push(const PlayerRoute());
-                },
+                onTap: () => context.router.push(const PlayerRoute()),
               ),
             )
           : null,
     );
   }
+
+  // Permission Screen
 }

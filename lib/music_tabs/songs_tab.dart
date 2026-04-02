@@ -104,7 +104,8 @@ class _SongsTabState extends ConsumerState<SongsTab> {
           trailing: ref.watch(songsProvider).currentSongIndex == index
               ? Icon(Icons.equalizer, color: AppColors.darkPrimary, size: 20)
               : Text(
-                  formatDuration(songState.currentSongDuration),
+                  // formatDuration(songState.currentSongDuration),
+                  formatDuration(songState.allSongsDuration[index]),
                   style: context.textTheme.labelSmall,
                 ),
           onTap: () {

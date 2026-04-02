@@ -55,7 +55,8 @@ class AppSettingsScreen extends ConsumerWidget {
                   ),
                   const Gap(16),
                   Text(
-                    userState.userName ?? "Music Player", // You can make this dynamic later
+                    userState.userName ??
+                        "PlayMusic", // You can make this dynamic later
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:music_player/extensions/extension_constant.dart';
-import 'package:music_player/providers/songs_provider.dart'; // Your provider file
-import 'package:music_player/providers/theme_provider.dart';
+import 'package:music_player/providers/songs_provider.dart';
+import 'package:music_player/theme/app_colors.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 @RoutePage()
 class PlayerScreen extends ConsumerWidget {
-  // Changed to ConsumerWidget (simpler)
   const PlayerScreen({super.key});
 
   String _formatDuration(Duration duration) {
@@ -22,14 +21,21 @@ class PlayerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final songState = ref.watch(songsProvider);
     final notifier = ref.read(songsProvider.notifier);
-    final themeState = ref.watch(themeProvider);
-    // Safety check
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Adaptive Brand Colors
+    final gold = AppColors.brandGold; // #FFC107 - Main accent
+    final charcoal = AppColors.brandCharcoal; // #212121
+    final textPrimary = isDark ? Colors.white : charcoal;
+    final textSecondary = isDark ? Colors.white70 : charcoal.withOpacity(0.75);
+
     if (songState.currentSong == null) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: Text(
             "No song is playing",
-            style: TextStyle(color: Colors.white, fontSize: 18),
+            style: context.textTheme.titleLarge?.copyWith(color: textPrimary),
           ),
         ),
       );
@@ -38,13 +44,13 @@ class PlayerScreen extends ConsumerWidget {
     final currentSong = songState.currentSong!;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down),
-          onPressed: () {
-            context.router.pop();
-          },
+          icon: Icon(Icons.keyboard_arrow_down, color: textPrimary),
+          onPressed: () => context.router.pop(),
         ),
       ),
       body: SafeArea(
@@ -54,14 +60,21 @@ class PlayerScreen extends ConsumerWidget {
             children: [
               const Spacer(flex: 1),
 
-              // Album Art (Static - No unwanted rotation)
+              // Album Art
               Center(
                 child: Container(
                   width: 280,
                   height: 280,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24, width: 8),
+                    border: Border.all(color: gold.withOpacity(0.3), width: 12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gold.withOpacity(0.25),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
                   child: ClipOval(
                     child: QueryArtworkWidget(
@@ -71,14 +84,9 @@ class PlayerScreen extends ConsumerWidget {
                       artworkHeight: 280,
                       artworkFit: BoxFit.cover,
                       keepOldArtwork: true,
-
                       nullArtworkWidget: Container(
-                        color: Colors.grey[900],
-                        child: const Icon(
-                          Icons.music_note,
-                          size: 120,
-                          color: Colors.white54,
-                        ),
+                        color: isDark ? charcoal : Colors.grey[200],
+                        child: Icon(Icons.music_note, size: 120, color: gold),
                       ),
                     ),
                   ),
@@ -90,7 +98,10 @@ class PlayerScreen extends ConsumerWidget {
               // Song Information
               Text(
                 currentSong.songName,
-                style: context.textTheme.titleLarge,
+                style: context.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary,
+                ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -98,13 +109,17 @@ class PlayerScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 currentSong.songArtist,
-                style: context.textTheme.titleMedium,
+                style: context.textTheme.titleMedium?.copyWith(
+                  color: textSecondary,
+                ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
 
               const Gap(50),
 
-              // Progress Bar + Time (Now using Riverpod state)
+              // Progress Bar
               Column(
                 children: [
                   Slider(
@@ -123,10 +138,9 @@ class PlayerScreen extends ConsumerWidget {
                     onChanged: (value) {
                       notifier.seekTo(Duration(seconds: value.toInt()));
                     },
-                    activeColor: themeState.isDarkMode
-                        ? Colors.white
-                        : Colors.black,
-                    inactiveColor: Colors.grey,
+                    activeColor: gold,
+                    inactiveColor: isDark ? Colors.white24 : Colors.grey[300],
+                    thumbColor: gold,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -135,11 +149,15 @@ class PlayerScreen extends ConsumerWidget {
                       children: [
                         Text(
                           _formatDuration(songState.currentSongPosition),
-                          style: context.textTheme.labelLarge,
+                          style: context.textTheme.labelLarge?.copyWith(
+                            color: textSecondary,
+                          ),
                         ),
                         Text(
                           _formatDuration(songState.currentSongDuration),
-                          style: context.textTheme.labelLarge,
+                          style: context.textTheme.labelLarge?.copyWith(
+                            color: textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -156,7 +174,7 @@ class PlayerScreen extends ConsumerWidget {
                   // Previous
                   IconButton(
                     iconSize: 48,
-                    icon: const Icon(Icons.skip_previous),
+                    icon: Icon(Icons.skip_previous, color: textPrimary),
                     onPressed: () => notifier.previousSong(),
                   ),
 
@@ -165,16 +183,21 @@ class PlayerScreen extends ConsumerWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: themeState.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
+                      color: gold,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: gold.withOpacity(0.4),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: IconButton(
                       iconSize: 40,
                       icon: songState.isPlaying
-                          ? const Icon(Icons.pause)
-                          : const Icon(Icons.play_arrow),
+                          ? const Icon(Icons.pause, color: Colors.black)
+                          : const Icon(Icons.play_arrow, color: Colors.black),
                       onPressed: () {
                         if (songState.isPlaying) {
                           notifier.pauseSong();
@@ -188,29 +211,26 @@ class PlayerScreen extends ConsumerWidget {
                   // Next
                   IconButton(
                     iconSize: 48,
-                    icon: const Icon(Icons.skip_next),
+                    icon: Icon(Icons.skip_next, color: textPrimary),
                     onPressed: () => notifier.nextSong(),
                   ),
-
-                  // Repeat
                 ],
               ),
-              Gap(20),
+
+              const Gap(20),
+
+              // Repeat & Favorite
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  // Repeat
                   IconButton(
                     iconSize: 36,
                     icon: Icon(
                       Icons.repeat,
-                      color: ref.watch(songsProvider).isRepeat
-                          ? Colors.green
-                          : Colors.grey,
+                      color: songState.isRepeat ? gold : textSecondary,
                     ),
-                    onPressed: () {
-                      // Add repeat logic later if needed
-                      ref.read(songsProvider.notifier).toggleRepeat();
-                    },
+                    onPressed: () => notifier.toggleRepeat(),
                   ),
 
                   // Favorite
@@ -219,24 +239,23 @@ class PlayerScreen extends ConsumerWidget {
                       final isLiked =
                           ref
                               .watch(songsProvider)
-                              .favouriteMap[songState.currentSong!.songID] ??
+                              .favouriteMap[currentSong.songID] ??
                           false;
                       return IconButton(
                         iconSize: 36,
-                        icon: isLiked
-                            ? Icon(Icons.favorite)
-                            : Icon(Icons.favorite_border),
+                        icon: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? gold : textSecondary,
+                        ),
                         onPressed: () {
-                          ref
-                              .read(songsProvider.notifier)
-                              .toggleFavourite(songState.currentSong!.songID);
+                          notifier.toggleFavourite(currentSong.songID);
                         },
                       );
                     },
                   ),
                 ],
               ),
-              Gap(20),
+              const Gap(20),
             ],
           ),
         ),
