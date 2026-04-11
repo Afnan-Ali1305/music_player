@@ -13,6 +13,7 @@ class EditUserName extends ConsumerStatefulWidget {
 
 class _EditUserNameState extends ConsumerState<EditUserName> {
   final nameController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -25,15 +26,24 @@ class _EditUserNameState extends ConsumerState<EditUserName> {
       title: const Text("Change Account Name"),
       content: Divider(color: AppColors.darkProgressBackground, thickness: 1),
       actions: [
-        TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            hintText: "Enter Name",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4),
-              borderSide: const BorderSide(
-                width: 1,
-                color: AppColors.darkProgressBackground,
+        Form(
+          key: formKey,
+          child: TextFormField(
+            controller: nameController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Name is Required";
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              hintText: "Enter Name",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: const BorderSide(
+                  width: 1,
+                  color: AppColors.darkProgressBackground,
+                ),
               ),
             ),
           ),
@@ -53,10 +63,12 @@ class _EditUserNameState extends ConsumerState<EditUserName> {
             ),
             GestureDetector(
               onTap: () async {
-                ref
-                    .read(userProvider.notifier)
-                    .updateUser(nameController.text.trim());
-                context.router.pop();
+                if (formKey.currentState!.validate()) {
+                  ref
+                      .read(userProvider.notifier)
+                      .updateUser(nameController.text.trim());
+                  context.router.pop();
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -67,7 +79,7 @@ class _EditUserNameState extends ConsumerState<EditUserName> {
                   color: AppColors.darkControlPressed,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   "save",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
                 ),

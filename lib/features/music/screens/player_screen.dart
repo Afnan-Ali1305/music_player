@@ -19,7 +19,20 @@ class PlayerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final songState = ref.watch(songsProvider);
+    // ==================== selective provider =======================
+
+    final currentSong = ref.watch(
+      songsProvider.select((state) => state.currentSong),
+    );
+
+    final currentSongPosition = ref.watch(
+      songsProvider.select((state) => state.currentSongPosition),
+    );
+
+    final currentSongDuration = ref.watch(
+      songsProvider.select((state) => state.currentSongDuration),
+    );
+
     final notifier = ref.read(songsProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -29,7 +42,7 @@ class PlayerScreen extends ConsumerWidget {
     final textPrimary = isDark ? Colors.white : charcoal;
     final textSecondary = isDark ? Colors.white70 : charcoal.withOpacity(0.75);
 
-    if (songState.currentSong == null) {
+    if (currentSong == null) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
@@ -40,8 +53,6 @@ class PlayerScreen extends ConsumerWidget {
         ),
       );
     }
-
-    final currentSong = songState.currentSong!;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -123,17 +134,14 @@ class PlayerScreen extends ConsumerWidget {
               Column(
                 children: [
                   Slider(
-                    value: songState.currentSongPosition.inSeconds
-                        .toDouble()
-                        .clamp(
-                          0,
-                          songState.currentSongDuration.inSeconds.toDouble() > 0
-                              ? songState.currentSongDuration.inSeconds
-                                    .toDouble()
-                              : 1,
-                        ),
-                    max: songState.currentSongDuration.inSeconds.toDouble() > 0
-                        ? songState.currentSongDuration.inSeconds.toDouble()
+                    value: currentSongPosition.inSeconds.toDouble().clamp(
+                      0,
+                      currentSongDuration.inSeconds.toDouble() > 0
+                          ? currentSongDuration.inSeconds.toDouble()
+                          : 1,
+                    ),
+                    max: currentSongDuration.inSeconds.toDouble() > 0
+                        ? currentSongDuration.inSeconds.toDouble()
                         : 1,
                     onChanged: (value) {
                       notifier.seekTo(Duration(seconds: value.toInt()));
@@ -148,13 +156,13 @@ class PlayerScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _formatDuration(songState.currentSongPosition),
+                          _formatDuration(currentSongPosition),
                           style: context.textTheme.labelLarge?.copyWith(
                             color: textSecondary,
                           ),
                         ),
                         Text(
-                          _formatDuration(songState.currentSongDuration),
+                          _formatDuration(currentSongDuration),
                           style: context.textTheme.labelLarge?.copyWith(
                             color: textSecondary,
                           ),
@@ -179,33 +187,44 @@ class PlayerScreen extends ConsumerWidget {
                   ),
 
                   // Play / Pause Button
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: gold,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: gold.withOpacity(0.4),
-                          blurRadius: 20,
-                          spreadRadius: 2,
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final isPlaying = ref.watch(
+                        songsProvider.select((state) => state.isPlaying),
+                      );
+                      return Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: gold,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: gold.withOpacity(0.4),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: IconButton(
-                      iconSize: 40,
-                      icon: songState.isPlaying
-                          ? const Icon(Icons.pause, color: Colors.black)
-                          : const Icon(Icons.play_arrow, color: Colors.black),
-                      onPressed: () {
-                        if (songState.isPlaying) {
-                          notifier.pauseSong();
-                        } else {
-                          notifier.resumeSong();
-                        }
-                      },
-                    ),
+
+                        child: IconButton(
+                          iconSize: 40,
+                          icon: isPlaying
+                              ? const Icon(Icons.pause, color: Colors.black)
+                              : const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.black,
+                                ),
+                          onPressed: () {
+                            if (isPlaying) {
+                              notifier.pauseSong();
+                            } else {
+                              notifier.resumeSong();
+                            }
+                          },
+                        ),
+                      );
+                    },
                   ),
 
                   // Next
@@ -224,13 +243,21 @@ class PlayerScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   // Repeat
-                  IconButton(
-                    iconSize: 36,
-                    icon: Icon(
-                      Icons.repeat,
-                      color: songState.isRepeat ? gold : textSecondary,
-                    ),
-                    onPressed: () => notifier.toggleRepeat(),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final isRepeat = ref.watch(
+                        songsProvider.select((state) => state.isRepeat),
+                      );
+                      return IconButton(
+                        iconSize: 36,
+                        icon: Icon(
+                          size: 30,
+                          Icons.repeat,
+                          color: isRepeat ? gold : textSecondary,
+                        ),
+                        onPressed: () => notifier.toggleRepeat(),
+                      );
+                    },
                   ),
 
                   // Favorite
@@ -244,6 +271,7 @@ class PlayerScreen extends ConsumerWidget {
                       return IconButton(
                         iconSize: 36,
                         icon: Icon(
+                          size: 30,
                           isLiked ? Icons.favorite : Icons.favorite_border,
                           color: isLiked ? gold : textSecondary,
                         ),

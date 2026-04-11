@@ -17,6 +17,7 @@ class UserNameScreen extends ConsumerStatefulWidget {
 
 class _UserNameScreenState extends ConsumerState<UserNameScreen> {
   TextEditingController nameController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,20 +30,32 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
               Gap(20),
               Text("Enter Your name: ", style: context.textTheme.titleSmall),
               Gap(10),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(),
+              // TextField(
+              //   controller: nameController,
+              //   decoration: InputDecoration(),
+              // ),
+              Form(
+                key: formKey,
+                child: TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(),
+                  // onChanged: ,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return ("Name is required");
+                    }
+                    return null;
+                  },
+                ),
               ),
               Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  if (nameController.text.isNotEmpty) {
+                  if (formKey.currentState!.validate()) {
                     ref
                         .read(userProvider.notifier)
                         .saveUser(nameController.text.trim());
                     context.router.replace(const PickImageRoute());
-                  } else {
-                    debugPrint("Please enter user name");
                   }
                 },
                 child: Text(
@@ -55,7 +68,9 @@ class _UserNameScreenState extends ConsumerState<UserNameScreen> {
               ElevatedButton(
                 onPressed: () async {
                   await LocalStorage.setVisited();
-                  context.router.replace(const PickImageRoute());
+                  if (context.mounted) {
+                    context.router.replace(const HomeRoute());
+                  }
                 },
                 child: Text(
                   "Skip".toUpperCase(),

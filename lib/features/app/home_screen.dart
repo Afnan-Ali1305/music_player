@@ -20,7 +20,7 @@
 //       child: Scaffold(
 //         appBar: AppBar(
 //           automaticallyImplyLeading: false,
-//           title: Text("PlayMusic", style: context.textTheme.titleLarge),
+//           title: Text("Musify", style: context.textTheme.titleLarge),
 //           actions: [
 //             Padding(
 //               padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -123,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         title: Text(
-          userState.userName ?? "PlayMusic",
+          userState.userName ?? "Musify",
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: textPrimary,
@@ -135,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             padding: const EdgeInsets.only(right: 16),
             child: InkWell(
               borderRadius: BorderRadius.circular(30),
-              onTap: () => context.router.push(const AppSettingsRoute()),
+              onTap: () => context.router.push(const SettingsRoute()),
               child: CircleAvatar(
                 radius: 20,
                 backgroundColor: primaryColor.withOpacity(0.12),

@@ -20,7 +20,7 @@ class AppRouter extends RootStackRouter {
       page: HomeRoute.page,
     ),
     CustomRoute(
-      page: AppSettingsRoute.page,
+      page: SettingsRoute.page,
       transitionsBuilder: TransitionsBuilders.fadeIn,
     ),
     CustomRoute(

@@ -19,7 +19,9 @@ class PickImageScreen extends ConsumerStatefulWidget {
 class _PickImageScreenState extends ConsumerState<PickImageScreen> {
   @override
   Widget build(BuildContext context) {
-    final userState = ref.watch(userProvider);
+    final profilePicture = ref.watch(
+      userProvider.select((state) => state.profilePicture),
+    );
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -38,10 +40,10 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
                   child: CircleAvatar(
                     radius: 80,
                     backgroundColor: Colors.grey[200],
-                    child: userState.profilePicture != null
+                    child: profilePicture != null
                         ? ClipOval(
                             child: Image.memory(
-                              userState.profilePicture!,
+                              profilePicture,
                               width: 160,
                               height: 160,
                               fit: BoxFit.cover,
@@ -69,8 +71,9 @@ class _PickImageScreenState extends ConsumerState<PickImageScreen> {
               ElevatedButton(
                 onPressed: () async {
                   await LocalStorage.setVisited();
-
-                  context.router.replace(const HomeRoute());
+                  if (context.mounted) {
+                    context.router.replace(const HomeRoute());
+                  }
                 },
                 child: Text(
                   "Skip".toUpperCase(),

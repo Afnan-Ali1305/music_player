@@ -16,10 +16,16 @@ class FavouriteSongsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final songState = ref.watch(songsProvider);
-    final notifier = ref.watch(songsProvider.notifier);
+    final currentSong = ref.watch(
+      songsProvider.select((state) => state.currentSong),
+    );
 
-    final favSongs = notifier.favouriteSongs;
+    final currentSongDuration = ref.watch(
+      songsProvider.select((state) => state.currentSongDuration),
+    );
+    final favSongs = ref.watch(
+      songsProvider.notifier.select((state) => state.favouriteSongs),
+    );
 
     if (favSongs.isEmpty) {
       return const Center(child: Text("No Favourite Songs"));
@@ -31,7 +37,7 @@ class FavouriteSongsTab extends ConsumerWidget {
       itemBuilder: (context, index) {
         final song = favSongs[index];
 
-        final isCurrent = songState.currentSong?.songID == song.songID;
+        final isCurrent = currentSong?.songID == song.songID;
 
         return ListTile(
           onTap: () {
@@ -43,7 +49,7 @@ class FavouriteSongsTab extends ConsumerWidget {
             // if (realIndex != -1) {
             //   notifier.playSong(realIndex);
             // }
-                ref
+            ref
                 .read(songsProvider.notifier)
                 .playFromQueue(
                   song: song,
@@ -80,10 +86,9 @@ class FavouriteSongsTab extends ConsumerWidget {
           trailing: isCurrent
               ? Icon(Icons.equalizer, color: AppColors.darkPrimary, size: 20)
               : Text(
-                  formatDuration(songState.currentSongDuration),
+                  formatDuration(currentSongDuration),
                   style: context.textTheme.labelSmall,
                 ),
-                
         );
       },
     );

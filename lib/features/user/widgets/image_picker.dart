@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:music_player/features/user/provider/user_provider.dart';
 import 'package:music_player/core/theme/app_colors.dart';
+import 'package:music_player/shared/widgets/app_snackbar.dart';
 
 class PickProfilePicture extends ConsumerStatefulWidget {
   const PickProfilePicture({super.key});
@@ -14,6 +15,7 @@ class PickProfilePicture extends ConsumerStatefulWidget {
 }
 
 class _PickProfilePictureState extends ConsumerState<PickProfilePicture> {
+  XFile? pickedFile;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,13 +27,10 @@ class _PickProfilePictureState extends ConsumerState<PickProfilePicture> {
         const SizedBox(height: 10),
         InkWell(
           onTap: () async {
-            final pickedFile = await ImagePicker().pickImage(
+            pickedFile = await ImagePicker().pickImage(
               source: ImageSource.camera, // or ImageSource.camera
               imageQuality: 75,
             );
-            if (pickedFile != null) {
-              ref.read(userProvider.notifier).savePhoto(pickedFile);
-            }
           },
           child: Row(
             children: [
@@ -63,16 +62,13 @@ class _PickProfilePictureState extends ConsumerState<PickProfilePicture> {
             ],
           ),
         ),
-        Divider(),
+        Divider(thickness: 2, height: 25),
         InkWell(
           onTap: () async {
-            final pickedFile = await ImagePicker().pickImage(
+            pickedFile = await ImagePicker().pickImage(
               source: ImageSource.gallery, // or ImageSource.camera
               imageQuality: 75,
             );
-            if (pickedFile != null) {
-              ref.read(userProvider.notifier).savePhoto(pickedFile);
-            }
           },
           child: Row(
             children: [
@@ -115,7 +111,12 @@ class _PickProfilePictureState extends ConsumerState<PickProfilePicture> {
             ),
             GestureDetector(
               onTap: () async {
-                context.router.pop();
+                if (pickedFile != null) {
+                  ref.read(userProvider.notifier).savePhoto(pickedFile);
+                  context.router.pop();
+                } else {
+                  AppSnackBar.showError(context, "No image is selected");
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(

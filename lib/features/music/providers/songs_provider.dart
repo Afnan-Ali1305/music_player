@@ -371,7 +371,6 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:music_player/data/local/local_storage_service.dart';
 import 'package:music_player/main.dart';
 import 'package:music_player/data/models/.playlist.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:music_player/data/models/song.dart';
 import 'package:music_player/core/utils/audio_permission.dart';
 import 'package:music_player/data/services/audio_player_services.dart';

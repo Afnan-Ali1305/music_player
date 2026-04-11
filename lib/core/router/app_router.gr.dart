@@ -10,35 +10,18 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i7;
-import 'package:music_player/features/app/home_screen.dart' as _i2;
+import 'package:music_player/features/app/home_screen.dart' as _i1;
 import 'package:music_player/features/app/splash_screen.dart' as _i5;
-import 'package:music_player/features/music/screens/player_screen.dart'
+import 'package:music_player/features/music/screens/player_screen.dart' as _i3;
+import 'package:music_player/features/settings/screens/settings_screen.dart'
     as _i4;
-import 'package:music_player/features/settings/screens/app_settings.dart'
-    as _i1;
 import 'package:music_player/features/user/screens/pick_image_screen.dart'
-    as _i3;
+    as _i2;
 import 'package:music_player/features/user/screens/user_name_screen.dart'
     as _i6;
 
 /// generated route for
-/// [_i1.AppSettingsScreen]
-class AppSettingsRoute extends _i7.PageRouteInfo<void> {
-  const AppSettingsRoute({List<_i7.PageRouteInfo>? children})
-    : super(AppSettingsRoute.name, initialChildren: children);
-
-  static const String name = 'AppSettingsRoute';
-
-  static _i7.PageInfo page = _i7.PageInfo(
-    name,
-    builder: (data) {
-      return const _i1.AppSettingsScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i2.HomeScreen]
+/// [_i1.HomeScreen]
 class HomeRoute extends _i7.PageRouteInfo<void> {
   const HomeRoute({List<_i7.PageRouteInfo>? children})
     : super(HomeRoute.name, initialChildren: children);
@@ -48,13 +31,13 @@ class HomeRoute extends _i7.PageRouteInfo<void> {
   static _i7.PageInfo page = _i7.PageInfo(
     name,
     builder: (data) {
-      return const _i2.HomeScreen();
+      return const _i1.HomeScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i3.PickImageScreen]
+/// [_i2.PickImageScreen]
 class PickImageRoute extends _i7.PageRouteInfo<void> {
   const PickImageRoute({List<_i7.PageRouteInfo>? children})
     : super(PickImageRoute.name, initialChildren: children);
@@ -64,13 +47,13 @@ class PickImageRoute extends _i7.PageRouteInfo<void> {
   static _i7.PageInfo page = _i7.PageInfo(
     name,
     builder: (data) {
-      return const _i3.PickImageScreen();
+      return const _i2.PickImageScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i4.PlayerScreen]
+/// [_i3.PlayerScreen]
 class PlayerRoute extends _i7.PageRouteInfo<void> {
   const PlayerRoute({List<_i7.PageRouteInfo>? children})
     : super(PlayerRoute.name, initialChildren: children);
@@ -80,7 +63,23 @@ class PlayerRoute extends _i7.PageRouteInfo<void> {
   static _i7.PageInfo page = _i7.PageInfo(
     name,
     builder: (data) {
-      return const _i4.PlayerScreen();
+      return const _i3.PlayerScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i4.SettingsScreen]
+class SettingsRoute extends _i7.PageRouteInfo<void> {
+  const SettingsRoute({List<_i7.PageRouteInfo>? children})
+    : super(SettingsRoute.name, initialChildren: children);
+
+  static const String name = 'SettingsRoute';
+
+  static _i7.PageInfo page = _i7.PageInfo(
+    name,
+    builder: (data) {
+      return const _i4.SettingsScreen();
     },
   );
 }

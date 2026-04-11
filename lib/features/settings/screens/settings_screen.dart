@@ -2,7 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:music_player/core/extensions/app_extensions.dart';
 import 'package:music_player/features/settings/providers/theme_provider.dart';
+import 'package:music_player/features/settings/widgets/settings_section_header.dart';
 import 'package:music_player/features/user/provider/user_provider.dart';
 import 'package:music_player/features/user/widgets/edit_user_name.dart';
 import 'package:music_player/features/user/widgets/image_picker.dart';
@@ -10,16 +12,18 @@ import 'package:music_player/features/settings/widgets/privacy_policy.dart';
 import 'package:music_player/features/settings/widgets/settings_row.dart';
 
 @RoutePage()
-class AppSettingsScreen extends ConsumerWidget {
-  const AppSettingsScreen({super.key});
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeProvider);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final userState = ref.watch(userProvider);
-
+    final darkMode = ref.watch(
+      themeProvider.select((state) => state.isDarkMode),
+    );
+    final userName = ref.watch(userProvider.select((state) => state.userName));
+    final profilePicture = ref.watch(
+      userProvider.select((state) => state.profilePicture),
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
@@ -39,10 +43,10 @@ class AppSettingsScreen extends ConsumerWidget {
                   CircleAvatar(
                     radius: 80,
                     backgroundColor: Colors.grey[200],
-                    child: userState.profilePicture != null
+                    child: profilePicture != null
                         ? ClipOval(
                             child: Image.memory(
-                              userState.profilePicture!,
+                              profilePicture,
                               width: 160,
                               height: 160,
                               fit: BoxFit.cover,
@@ -56,9 +60,8 @@ class AppSettingsScreen extends ConsumerWidget {
                   ),
                   const Gap(16),
                   Text(
-                    userState.userName ??
-                        "PlayMusic", // You can make this dynamic later
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                    userName ?? "Musify", // You can make this dynamic later
+                    style: context.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -69,7 +72,7 @@ class AppSettingsScreen extends ConsumerWidget {
             const Gap(30),
 
             // Music Preferences
-            _buildSectionTitle(context, "Profile"),
+            SettingsSectionHeader(title: "Profile"),
             const Gap(12),
 
             Card(
@@ -107,7 +110,7 @@ class AppSettingsScreen extends ConsumerWidget {
             const Gap(17),
 
             // Appearance
-            _buildSectionTitle(context, "Appearance"),
+            SettingsSectionHeader(title: "Appearance"),
             const Gap(12),
 
             Card(
@@ -119,8 +122,8 @@ class AppSettingsScreen extends ConsumerWidget {
                 text: "Dark Mode",
                 icon: Icons.dark_mode, // Replace with theme icon
                 trailing: Switch(
-                  value: themeState.isDarkMode,
-                  activeColor: colorScheme.primary,
+                  value: darkMode,
+                  // activeColor: colorScheme.primary,
                   onChanged: (value) {
                     ref.read(themeProvider.notifier).changeTheme();
                   },
@@ -134,7 +137,7 @@ class AppSettingsScreen extends ConsumerWidget {
             const Gap(17),
 
             // App Info
-            _buildSectionTitle(context, "About"),
+            SettingsSectionHeader(title: "About"),
             const Gap(12),
 
             Card(
@@ -191,17 +194,17 @@ class AppSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.6,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
+  // Widget _buildSectionTitle(BuildContext context, String title) {
+  //   return Padding(
+  //     padding: const EdgeInsets.only(left: 8),
+  //     child: Text(
+  //       title,
+  //       style: context.textTheme.titleSmall?.copyWith(
+  //         fontWeight: FontWeight.w600,
+  //         letterSpacing: 0.6,
+  //         color: Theme.of(context).colorScheme.onSurfaceVariant,
+  //       ),
+  //     ),
+  //   );
+  // }
 }

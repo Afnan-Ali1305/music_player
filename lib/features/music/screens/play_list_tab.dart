@@ -339,9 +339,10 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:music_player/data/models/.playlist.dart';// Fixed import (removed dot)
+import 'package:music_player/data/models/.playlist.dart'; // Fixed import (removed dot)
 import 'package:music_player/data/models/song.dart';
 import 'package:music_player/features/music/providers/songs_provider.dart';
+import 'package:music_player/features/music/widgets/create_playlist.dart';
 
 class PlaylistTab extends ConsumerStatefulWidget {
   const PlaylistTab({super.key});
@@ -371,7 +372,18 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     return Scaffold(
       appBar: AppBar(title: const Text('Playlists')),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreatePlaylistDialog(notifier),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return CreatePlaylist();
+            },
+          );
+
+          // showDialog(
+          //     context: context,
+          //     builder:
+        },
         child: const Icon(Icons.add),
       ),
       body: state.userPlaylists.isEmpty
@@ -486,7 +498,8 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                     itemCount: songsInPlaylist.length,
                     itemBuilder: (context, index) {
                       final song = songsInPlaylist[index];
-                      final isPlaying = state.currentSong?.songID == song.songID;
+                      final isPlaying =
+                          state.currentSong?.songID == song.songID;
 
                       return ListTile(
                         leading: const Icon(Icons.music_note),
@@ -524,35 +537,35 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
   }
 
   // ================= DIALOGS (Unchanged) =================
-  void _showCreatePlaylistDialog(SongsNotifier notifier) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('New Playlist'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Playlist name'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                notifier.createPlaylist(controller.text.trim());
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showCreatePlaylistDialog(SongsNotifier notifier) {
+  //   final controller = TextEditingController();
+  //   showDialog(
+  //     context: context,
+  //     builder: (ctx) => AlertDialog(
+  //       title: const Text('New Playlist'),
+  //       content: TextField(
+  //         controller: controller,
+  //         decoration: const InputDecoration(hintText: 'Playlist name'),
+  //         autofocus: true,
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(ctx),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             if (controller.text.trim().isNotEmpty) {
+  //               notifier.createPlaylist(controller.text.trim());
+  //             }
+  //             Navigator.pop(ctx);
+  //           },
+  //           child: const Text('Create'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showRenamePlaylistDialog(Playlist playlist, SongsNotifier notifier) {
     final controller = TextEditingController(text: playlist.name);
