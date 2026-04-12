@@ -8,20 +8,39 @@ class AppRouter extends RootStackRouter {
   List<AutoRoute> get routes => [
     CustomRoute(
       page: SplashRoute.page,
-      initial: true,
+      // initial: true,
       transitionsBuilder: TransitionsBuilders.fadeIn,
+    ),
+    CustomRoute(
+      page: OnBoardingRoute.page,
+      transitionsBuilder: TransitionsBuilders.fadeIn,
+    ),
+    CustomRoute(
+      initial: true,
+      page: HomeNavigationRoute.page,
+      transitionsBuilder: TransitionsBuilders.fadeIn,
+      children: [
+        CustomRoute(
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+          page: HomeRoute.page,
+        ),
+        CustomRoute(
+          page: SettingsRoute.page,
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+        ),
+        CustomRoute(
+          page: LibraryRoute.page,
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+        ),
+        CustomRoute(
+          page: SearchRoute.page,
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+        ),
+      ],
     ),
     CustomRoute(
       transitionsBuilder: TransitionsBuilders.fadeIn,
       page: UserNameRoute.page,
-    ),
-    CustomRoute(
-      transitionsBuilder: TransitionsBuilders.fadeIn,
-      page: HomeRoute.page,
-    ),
-    CustomRoute(
-      page: SettingsRoute.page,
-      transitionsBuilder: TransitionsBuilders.fadeIn,
     ),
     CustomRoute(
       page: PlayerRoute.page,

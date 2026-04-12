@@ -91,4 +91,22 @@ class LocalStorage {
       box.get('recently_played_ids', defaultValue: <int>[]),
     );
   }
+
+  ///================================= search history ====================
+  static void saveSearch(String query) {
+    List history = box.get('history', defaultValue: []);
+
+    history.remove(query); // remove duplicate
+    history.insert(0, query); // newest first
+
+    if (history.length > 10) {
+      history = history.sublist(0, 10);
+    }
+
+    box.put('history', history);
+  }
+
+  static List getHistory() {
+    return box.get('history', defaultValue: []);
+  }
 }

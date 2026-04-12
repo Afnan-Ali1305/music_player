@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:music_player/core/extensions/app_extensions.dart';
+import 'package:music_player/features/music/providers/favourites_provider.dart';
 import 'package:music_player/features/music/providers/songs_provider.dart';
 import 'package:music_player/core/theme/app_colors.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -265,7 +266,7 @@ class PlayerScreen extends ConsumerWidget {
                     builder: (context, ref, child) {
                       final isLiked =
                           ref
-                              .watch(songsProvider)
+                              .watch(favouritesProvider)
                               .favouriteMap[currentSong.songID] ??
                           false;
                       return IconButton(
@@ -276,7 +277,9 @@ class PlayerScreen extends ConsumerWidget {
                           color: isLiked ? gold : textSecondary,
                         ),
                         onPressed: () {
-                          notifier.toggleFavourite(currentSong.songID);
+                          ref
+                              .read(favouritesProvider.notifier)
+                              .toggleFavourite(currentSong.songID);
                         },
                       );
                     },

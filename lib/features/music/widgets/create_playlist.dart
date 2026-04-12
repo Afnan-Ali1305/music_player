@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:music_player/features/music/providers/songs_provider.dart';
+import 'package:music_player/features/music/providers/playlists_provider.dart';
 
 class CreatePlaylist extends ConsumerStatefulWidget {
   const CreatePlaylist({super.key});
@@ -40,7 +40,7 @@ class _CreatePlaylistState extends ConsumerState<CreatePlaylist> {
           onPressed: () {
             if (formKey.currentState!.validate()) {
               ref
-                  .read(songsProvider.notifier)
+                  .read(playlistsProvider.notifier)
                   .createPlaylist(playListName.text.trim());
               context.router.pop();
             }

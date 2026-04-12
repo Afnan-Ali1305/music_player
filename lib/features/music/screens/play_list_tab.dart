@@ -339,8 +339,9 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:music_player/data/models/.playlist.dart'; // Fixed import (removed dot)
+import 'package:music_player/data/models/.playlist.dart';
 import 'package:music_player/data/models/song.dart';
+import 'package:music_player/features/music/providers/playlists_provider.dart';
 import 'package:music_player/features/music/providers/songs_provider.dart';
 import 'package:music_player/features/music/widgets/create_playlist.dart';
 
@@ -357,48 +358,51 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(songsProvider);
-    final notifier = ref.read(songsProvider.notifier);
+    // Watch necessary providers
+    final songsState = ref.watch(songsProvider);
+    final playlistsState = ref.watch(playlistsProvider);
+
+    final songsNotifier = ref.read(songsProvider.notifier);
+    final playlistsNotifier = ref.read(playlistsProvider.notifier);
 
     if (_isDetailView && _currentPlaylistId != null) {
-      return _buildPlaylistDetailView(state, notifier);
+      return _buildPlaylistDetailView(
+        songsState: songsState,
+        playlistsState: playlistsState,
+        songsNotifier: songsNotifier,
+        playlistsNotifier: playlistsNotifier,
+      );
     }
 
-    return _buildPlaylistListView(state, notifier);
+    return _buildPlaylistListView(playlistsState, playlistsNotifier);
   }
 
-  // ================= MAIN PLAYLIST LIST VIEW =================
-  Widget _buildPlaylistListView(SongsState state, SongsNotifier notifier) {
+  // ================= PLAYLIST LIST VIEW =================
+  Widget _buildPlaylistListView(
+    PlaylistsState playlistsState,
+    PlaylistsNotifier playlistsNotifier,
+  ) {
     return Scaffold(
       appBar: AppBar(title: const Text('Playlists')),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) {
-              return CreatePlaylist();
-            },
+            builder: (context) => const CreatePlaylist(),
           );
-
-          // showDialog(
-          //     context: context,
-          //     builder:
         },
         child: const Icon(Icons.add),
       ),
-      body: state.userPlaylists.isEmpty
-          ? Center(
+      body: playlistsState.playlists.isEmpty
+          ? const Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.queue_music, size: 80, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No playlists yet',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  Icon(Icons.queue_music, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('No playlists yet', style: TextStyle(fontSize: 20)),
+                  SizedBox(height: 8),
+                  Text(
                     'Create your first playlist!',
                     style: TextStyle(color: Colors.grey),
                   ),
@@ -407,10 +411,11 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: state.userPlaylists.length,
+              itemCount: playlistsState.playlists.length,
               itemBuilder: (context, index) {
-                final playlist = state.userPlaylists[index];
+                final playlist = playlistsState.playlists[index];
                 final songCount = playlist.songIds.length;
+
                 return Card(
                   child: ListTile(
                     leading: const Icon(Icons.queue_music, size: 40),
@@ -433,12 +438,18 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     );
   }
 
-  // ================= PLAYLIST DETAIL VIEW (Updated with Queue) =================
-  Widget _buildPlaylistDetailView(SongsState state, SongsNotifier notifier) {
-    final playlist = state.userPlaylists.firstWhere(
+  // ================= PLAYLIST DETAIL VIEW =================
+  Widget _buildPlaylistDetailView({
+    required SongsState songsState,
+    required PlaylistsState playlistsState,
+    required SongsNotifier songsNotifier,
+    required PlaylistsNotifier playlistsNotifier,
+  }) {
+    final playlist = playlistsState.playlists.firstWhere(
       (p) => p.id == _currentPlaylistId,
     );
-    final songsInPlaylist = notifier.getSongsInPlaylist(playlist.id);
+
+    final songsInPlaylist = playlistsNotifier.getSongsInPlaylist(playlist.id);
 
     return Scaffold(
       appBar: AppBar(
@@ -450,22 +461,28 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => _showRenamePlaylistDialog(playlist, notifier),
+            onPressed: () => _showRenamePlaylistDialog(playlist, playlistsNotifier),
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => _showDeletePlaylistDialog(playlist, notifier),
+            onPressed: () => _showDeletePlaylistDialog(playlist, playlistsNotifier),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () =>
-            _showAddSongsDialog(playlist, notifier, state.allSongs),
+        onPressed: () => _showAddSongsDialog(
+          playlist,
+          playlistsNotifier,
+          songsState.allSongs,
+        ),
         child: const Icon(Icons.add),
       ),
       body: songsInPlaylist.isEmpty
           ? const Center(
-              child: Text('This playlist is empty\nTap + to add songs'),
+              child: Text(
+                'This playlist is empty\nTap + to add songs',
+                textAlign: TextAlign.center,
+              ),
             )
           : Column(
               children: [
@@ -475,8 +492,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       if (songsInPlaylist.isNotEmpty) {
-                        // ✅ Correct: Use playlist songs as queue
-                        notifier.playFromQueue(
+                        songsNotifier.playFromQueue(
                           song: songsInPlaylist.first,
                           queue: songsInPlaylist,
                           queueType: QueueType.playlist,
@@ -498,8 +514,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                     itemCount: songsInPlaylist.length,
                     itemBuilder: (context, index) {
                       final song = songsInPlaylist[index];
-                      final isPlaying =
-                          state.currentSong?.songID == song.songID;
+                      final isPlaying = songsState.currentSong?.songID == song.songID;
 
                       return ListTile(
                         leading: const Icon(Icons.music_note),
@@ -514,14 +529,13 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                             Icons.remove_circle_outline,
                             color: Colors.red,
                           ),
-                          onPressed: () => notifier.removeSongFromPlaylist(
+                          onPressed: () => playlistsNotifier.removeSongFromPlaylist(
                             playlist.id,
                             song.songID,
                           ),
                         ),
                         onTap: () {
-                          // ✅ Correct: Play with playlist as queue
-                          notifier.playFromQueue(
+                          songsNotifier.playFromQueue(
                             song: song,
                             queue: songsInPlaylist,
                             queueType: QueueType.playlist,
@@ -536,39 +550,10 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     );
   }
 
-  // ================= DIALOGS (Unchanged) =================
-  // void _showCreatePlaylistDialog(SongsNotifier notifier) {
-  //   final controller = TextEditingController();
-  //   showDialog(
-  //     context: context,
-  //     builder: (ctx) => AlertDialog(
-  //       title: const Text('New Playlist'),
-  //       content: TextField(
-  //         controller: controller,
-  //         decoration: const InputDecoration(hintText: 'Playlist name'),
-  //         autofocus: true,
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(ctx),
-  //           child: const Text('Cancel'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             if (controller.text.trim().isNotEmpty) {
-  //               notifier.createPlaylist(controller.text.trim());
-  //             }
-  //             Navigator.pop(ctx);
-  //           },
-  //           child: const Text('Create'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  void _showRenamePlaylistDialog(Playlist playlist, SongsNotifier notifier) {
+  // ================= DIALOGS =================
+  void _showRenamePlaylistDialog(Playlist playlist, PlaylistsNotifier notifier) {
     final controller = TextEditingController(text: playlist.name);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -585,7 +570,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                 notifier.renamePlaylist(playlist.id, controller.text.trim());
               }
               Navigator.pop(ctx);
-              setState(() {}); // refresh UI
+              setState(() {}); // Refresh UI
             },
             child: const Text('Save'),
           ),
@@ -594,7 +579,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     );
   }
 
-  void _showDeletePlaylistDialog(Playlist playlist, SongsNotifier notifier) {
+  void _showDeletePlaylistDialog(Playlist playlist, PlaylistsNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -623,19 +608,20 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
 
   void _showAddSongsDialog(
     Playlist playlist,
-    SongsNotifier notifier,
+    PlaylistsNotifier playlistsNotifier,
     List<Song> allSongs,
   ) {
     final songsNotInPlaylist = allSongs
         .where((song) => !playlist.songIds.contains(song.songID))
         .toList();
-    final TextEditingController searchCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setInnerState) {
+            final searchCtrl = TextEditingController();
+
             final filtered = songsNotInPlaylist.where((song) {
               final query = searchCtrl.text.toLowerCase();
               return query.isEmpty ||
@@ -652,9 +638,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                   children: [
                     TextField(
                       controller: searchCtrl,
-                      decoration: const InputDecoration(
-                        hintText: 'Search songs...',
-                      ),
+                      decoration: const InputDecoration(hintText: 'Search songs...'),
                       onChanged: (_) => setInnerState(() {}),
                     ),
                     Expanded(
@@ -668,7 +652,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                                   title: Text(song.songName),
                                   subtitle: Text(song.songArtist),
                                   onTap: () {
-                                    notifier.addSongToPlaylist(
+                                    playlistsNotifier.addSongToPlaylist(
                                       playlist.id,
                                       song.songID,
                                     );

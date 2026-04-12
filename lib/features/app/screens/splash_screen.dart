@@ -34,7 +34,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (user.isFirstTime) {
       // Go to username input
       if (context.mounted) {
-        context.router.replace(const UserNameRoute());
+        context.router.replace(const OnBoardingRoute());
       }
     } else {
       // Go to home

@@ -6,10 +6,11 @@ import 'package:music_player/features/settings/providers/theme_provider.dart';
 import 'package:music_player/core/router/app_router.dart';
 import 'package:music_player/data/services/audio_player_services.dart';
 import 'package:music_player/core/theme/app_theme.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 late AudioHandler globalAudioHandler;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");  
   await Hive.initFlutter();
   await Hive.openBox('Musify');
   globalAudioHandler = await AudioService.init(
@@ -22,6 +23,7 @@ void main() async {
       androidNotificationChannelDescription: 'Musify music playback controls',
     ),
   );
+
   runApp(ProviderScope(child: MyApp()));
 }
 

@@ -270,6 +270,7 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:music_player/features/music/providers/albums_provider.dart';
 import 'package:music_player/features/music/providers/songs_provider.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -291,7 +292,8 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(songsProvider.notifier).fetchAlbums();
+      // Fetch albums using its own provider
+      ref.read(albumsProvider.notifier).fetchAlbums();
     });
   }
 
@@ -303,19 +305,25 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(songsProvider);
-    final notifier = ref.read(songsProvider.notifier);
+    // Watch only what's needed
+    final songsState = ref.watch(songsProvider);
+    final albumsNotifier = ref.read(albumsProvider.notifier);
+    final albumsState = ref.watch(albumsProvider); // Watch albums state if needed
 
     if (_isDetailView && _currentAlbumId != null) {
-      return _buildAlbumDetailView(state, notifier);
+      return _buildAlbumDetailView(songsState, albumsNotifier);
     }
 
-    return _buildAlbumListView(state, notifier);
+    return _buildAlbumListView(songsState, albumsNotifier, albumsState);
   }
 
   // ================= ALBUM LIST VIEW =================
-  Widget _buildAlbumListView(SongsState state, SongsNotifier notifier) {
-    final filteredAlbums = notifier.albums.where((album) {
+  Widget _buildAlbumListView(
+    SongsState songsState,
+    AlbumsNotifier albumsNotifier,
+    AlbumsState albumsState,
+  ) {
+    final filteredAlbums = albumsNotifier.albums.where((album) {
       if (_searchQuery.isEmpty) return true;
       final query = _searchQuery.toLowerCase();
       return (album.album?.toLowerCase() ?? '').contains(query) ||
@@ -344,7 +352,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           ),
 
           Expanded(
-            child: notifier.albums.isEmpty
+            child: albumsState.albums.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : filteredAlbums.isEmpty
                     ? const Center(child: Text('No albums found'))
@@ -423,9 +431,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     );
   }
 
-  // ================= ALBUM DETAIL VIEW (Updated with Queue) =================
-  Widget _buildAlbumDetailView(SongsState state, SongsNotifier notifier) {
-    final songsInAlbum = notifier.getSongsInAlbum(_currentAlbumId!);
+  // ================= ALBUM DETAIL VIEW =================
+  Widget _buildAlbumDetailView(SongsState songsState, AlbumsNotifier albumsNotifier) {
+    final songsInAlbum = albumsNotifier.getSongsInAlbum(_currentAlbumId!);
 
     return Scaffold(
       appBar: AppBar(
@@ -445,10 +453,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       if (songsInAlbum.isNotEmpty) {
-                        // ✅ Play first song with full album as queue
-                        notifier.playFromQueue(
+                        ref.read(songsProvider.notifier).playFromQueue(          // Note: This should be in SongsNotifier
                           song: songsInAlbum.first,
-                          queue: songsInAlbum,           // Important: Album songs as queue
+                          queue: songsInAlbum,
                           queueType: QueueType.album,
                         );
                       }
@@ -471,7 +478,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                     itemCount: songsInAlbum.length,
                     itemBuilder: (context, index) {
                       final song = songsInAlbum[index];
-                      final isCurrentlyPlaying = state.currentSong?.songID == song.songID;
+                      final isCurrentlyPlaying = songsState.currentSong?.songID == song.songID;
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -516,10 +523,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           onTap: () {
-                            // ✅ Correct way - Use album songs as queue
-                            notifier.playFromQueue(
+                            ref.read(songsProvider.notifier).playFromQueue(     // Should be from SongsNotifier
                               song: song,
-                              queue: songsInAlbum,        // Pass only album songs
+                              queue: songsInAlbum,
                               queueType: QueueType.album,
                             );
                           },

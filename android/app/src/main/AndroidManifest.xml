@@ -10,7 +10,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-
+    
+    <!--internet access-->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Required for audio_service to keep playback alive in the background.
          Without this the OS may kill the service when the app is minimized. -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
