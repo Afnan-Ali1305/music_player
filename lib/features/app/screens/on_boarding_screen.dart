@@ -188,7 +188,7 @@ final List<OnboardingItem> onboardingItems = [
   OnboardingItem(
     title: "Stream Anytime, Anywhere",
     description: "Discover and stream millions of songs instantly.",
-    image: AssetImages.introFeature2,
+    image: AssetImages.introFeature1,
   ),
   OnboardingItem(
     title: "Smart Picks & Playlists",

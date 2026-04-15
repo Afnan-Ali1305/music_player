@@ -8,7 +8,7 @@ class AppRouter extends RootStackRouter {
   List<AutoRoute> get routes => [
     CustomRoute(
       page: SplashRoute.page,
-      // initial: true,
+      initial: true,
       transitionsBuilder: TransitionsBuilders.fadeIn,
     ),
     CustomRoute(
@@ -16,7 +16,6 @@ class AppRouter extends RootStackRouter {
       transitionsBuilder: TransitionsBuilders.fadeIn,
     ),
     CustomRoute(
-      initial: true,
       page: HomeNavigationRoute.page,
       transitionsBuilder: TransitionsBuilders.fadeIn,
       children: [
